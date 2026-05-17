@@ -135,11 +135,78 @@ input,select,textarea{font-family:inherit}
 .form-textarea:focus{border-color:#bae6fd}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 
+/* カード削除ボタン */
+.trip-card-wrap{position:relative}
+.trip-card-del{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:13px;line-height:22px;text-align:center;cursor:pointer;z-index:10;opacity:0;transition:.15s;border:none;padding:0}
+.trip-card-wrap:hover .trip-card-del{opacity:1}
+
 @media print{
-  #nav,.add-activity-btn,.activity-actions,.packing-add-row,.add-btn,.nav-btn,#day-tabs{display:none!important}
-  body{background:#fff}
-  .day-section,.section-card{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid}
-  #trip-cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 非表示要素 */
+  #nav,.add-activity-btn,.activity-actions,.packing-add-row,.add-btn,.nav-btn,#day-tabs,
+  .packing-del,.packing-check,.memo-area{display:none!important}
+
+  body{background:#fff;font-family:'Hiragino Kaku Gothic Pro','Meiryo',sans-serif}
+  *{box-shadow:none!important}
+
+  /* カバー */
+  #trip-cover{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    border-radius:0;padding:40px 48px 36px;
+    page-break-after:always;
+  }
+  .cover-label{font-size:13px;letter-spacing:.15em;opacity:.85;margin-bottom:8px}
+  .cover-title{font-size:32px;font-weight:900;margin-bottom:14px;line-height:1.3}
+  .cover-meta{font-size:14px;gap:16px;flex-wrap:wrap;opacity:.9}
+  .cover-memo{font-size:13px;margin-top:14px;background:rgba(255,255,255,.2);border-radius:10px;padding:10px 14px;line-height:1.8;white-space:pre-line}
+
+  /* しおり本文エリア */
+  #trip-wrap{padding:24px 40px;max-width:100%}
+
+  /* 日程セクション */
+  .day-section{
+    border:none;border-radius:0;
+    padding:0;margin-bottom:0;
+    page-break-inside:avoid;
+    page-break-before:always;
+  }
+  .day-section-header{
+    background:linear-gradient(90deg,#0ea5e9,#6366f1);
+    color:#fff;padding:10px 18px;border-radius:8px;
+    margin-bottom:14px;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+  }
+  .day-section-title{font-size:17px;font-weight:800;color:#fff}
+
+  /* タイムライン */
+  .activity-row{display:flex;gap:0;margin-bottom:10px;align-items:flex-start}
+  .activity-time{width:56px;min-width:56px;font-size:12px;font-weight:700;color:#0ea5e9;padding-top:4px;text-align:right;padding-right:10px}
+  .activity-card{
+    flex:1;border-left:3px solid #e2e8f0;padding:6px 12px;border-radius:0 8px 8px 0;
+    background:#f8fafc;break-inside:avoid;
+  }
+  .activity-line{display:none}
+  .activity-cat-badge{font-size:11px;font-weight:700;margin-bottom:2px}
+  .activity-name{font-size:14px;font-weight:800;color:#0f172a}
+  .activity-loc{font-size:11px;color:#64748b;margin-top:2px}
+  .activity-cost{font-size:11px;color:#059669;margin-top:2px}
+  .activity-notes{font-size:11px;color:#475569;margin-top:4px;line-height:1.6;background:#fff;padding:4px 8px;border-radius:4px;border-left:2px solid #bae6fd}
+
+  /* カテゴリ別ボーダー色 */
+  .cat-food{border-left-color:#f97316!important}
+  .cat-sightseeing{border-left-color:#0ea5e9!important}
+  .cat-transport{border-left-color:#8b5cf6!important}
+  .cat-accommodation{border-left-color:#ec4899!important}
+  .cat-activity{border-left-color:#10b981!important}
+  .cat-shopping{border-left-color:#f59e0b!important}
+  .cat-free{border-left-color:#94a3b8!important}
+
+  /* 持ち物リスト */
+  .section-card{border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-top:24px;break-inside:avoid}
+  .section-card-title{font-size:15px;font-weight:800;margin-bottom:12px;color:#0f172a}
+  .packing-item{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed #e2e8f0}
+  .packing-item:last-child{border-bottom:none}
+  .packing-text{font-size:13px}
+  .packing-text::before{content:'□ ';font-size:14px;color:#94a3b8}
 }
 </style>
 </head>
@@ -535,14 +602,17 @@ function renderHome(){
       </div>
       <div id="trips-grid">
         ${trips.length===0?`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">✈️</div><p>まだ旅のしおりがありません</p><small>「新しい旅を作る」から始めましょう</small></div>`:
-          trips.map(t=>`<div class="trip-card" data-trip="${t.id}">
-            <div class="trip-card-cover">${t.emoji||'✈️'}</div>
-            <div class="trip-card-body">
-              <div class="trip-card-title">${esc(t.title)}</div>
-              <div class="trip-card-meta">
-                <span>📍 ${esc(t.destination||'未設定')}</span>
-                <span>📅 ${t.nights!=null?`${t.nights}泊${t.nights+1}日`:''}</span>
-                <span>👥 ${esc(t.people||'')}</span>
+          trips.map(t=>`<div class="trip-card-wrap">
+            <button class="trip-card-del" data-del="${t.id}" title="削除">✕</button>
+            <div class="trip-card" data-trip="${t.id}">
+              <div class="trip-card-cover">${t.emoji||'✈️'}</div>
+              <div class="trip-card-body">
+                <div class="trip-card-title">${esc(t.title)}</div>
+                <div class="trip-card-meta">
+                  <span>📍 ${esc(t.destination||'未設定')}</span>
+                  <span>📅 ${t.nights!=null?`${t.nights}泊${t.nights+1}日`:''}</span>
+                  <span>👥 ${esc(t.people||'')}</span>
+                </div>
               </div>
             </div>
           </div>`).join('')}
@@ -551,6 +621,14 @@ function renderHome(){
   document.getElementById('new-trip-btn').onclick=()=>openTripModal(null);
   document.querySelectorAll('.trip-card').forEach(el=>{
     el.onclick=()=>{state.tripId=el.dataset.trip;state.dayIdx=0;state.view='trip';render();};
+  });
+  document.querySelectorAll('.trip-card-del').forEach(btn=>{
+    btn.onclick=e=>{
+      e.stopPropagation();
+      const t=db.trip(btn.dataset.del);
+      if(!t||!confirm(`「${t.title}」を削除しますか？`))return;
+      db.del(btn.dataset.del);render();
+    };
   });
 }
 
