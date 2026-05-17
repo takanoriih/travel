@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅のしおり</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f9ff;color:#1e293b;min-height:100vh}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+input,select,textarea{font-family:inherit}
+.hidden{display:none!important}
+
+#nav{background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(14,165,233,.3)}
+#nav-back{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;transition:.2s}
+#nav-back:hover{background:rgba(255,255,255,.35)}
+#nav-title{font-size:17px;font-weight:800;flex:1}
+#nav-actions{display:flex;gap:8px}
+.nav-btn{height:34px;padding:0 14px;border-radius:20px;background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:700;transition:.2s;border:1px solid rgba(255,255,255,.3)}
+.nav-btn:hover{background:rgba(255,255,255,.35)}
+
+#home-wrap{max-width:900px;margin:0 auto;padding:24px 16px}
+.home-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.home-title{font-size:26px;font-weight:900;color:#0f172a}
+.home-sub{font-size:14px;color:#64748b;margin-top:2px}
+.add-btn{height:44px;padding:0 20px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border-radius:14px;font-size:14px;font-weight:800;box-shadow:0 4px 14px rgba(14,165,233,.4);transition:.2s}
+.add-btn:hover{transform:translateY(-1px)}
+#trips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.trip-card{background:#fff;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:2px solid transparent;cursor:pointer;transition:.2s;overflow:hidden}
+.trip-card:hover{border-color:#bae6fd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(14,165,233,.15)}
+.trip-card-cover{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;background:linear-gradient(135deg,#e0f2fe,#ede9fe)}
+.trip-card-body{padding:16px}
+.trip-card-title{font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px}
+.trip-card-meta{font-size:12px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:60px 20px;color:#94a3b8}
+.empty-state .emoji{font-size:56px;margin-bottom:16px}
+.empty-state p{font-size:16px;font-weight:600;margin-bottom:6px;color:#64748b}
+
+/* テンプレート選択 */
+.tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+.tpl-btn{padding:10px 8px;border-radius:14px;border:2px solid #e2e8f0;background:#fff;text-align:center;cursor:pointer;transition:.2s;font-size:13px}
+.tpl-btn:hover{border-color:#bae6fd;background:#f0f9ff}
+.tpl-btn.selected{border-color:#0ea5e9;background:#e0f2fe}
+.tpl-btn .tpl-emoji{font-size:24px;display:block;margin-bottom:4px}
+.tpl-btn .tpl-name{font-weight:700;color:#0f172a;font-size:12px}
+.tpl-btn .tpl-sub{font-size:11px;color:#64748b}
+.tpl-divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#94a3b8;font-size:12px}
+.tpl-divider::before,.tpl-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
+
+#trip-cover{background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;padding:24px 20px 28px}
+.cover-inner{max-width:800px;margin:0 auto}
+.cover-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.1em;margin-bottom:6px}
+.cover-title{font-size:28px;font-weight:900;margin-bottom:10px;line-height:1.2}
+.cover-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:rgba(255,255,255,.85);margin-bottom:12px}
+.cover-memo{font-size:13px;background:rgba(255,255,255,.15);border-radius:12px;padding:10px 14px;color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.2)}
+
+#trip-wrap{max-width:800px;margin:0 auto;padding:0 16px 40px}
+#day-tabs{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+#day-tabs::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;padding:8px 18px;border-radius:14px;font-size:13px;font-weight:700;border:2px solid #e2e8f0;background:#fff;color:#64748b;transition:.2s;white-space:nowrap}
+.day-tab.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9;box-shadow:0 4px 12px rgba(14,165,233,.35)}
+.day-tab:hover:not(.active){border-color:#bae6fd;color:#0ea5e9}
+.day-tab-date{font-size:11px;font-weight:500;opacity:.75;display:block;margin-top:1px}
+
+.day-section{background:#fff;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #e2e8f0;padding:20px;margin-top:12px}
+.day-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.day-section-title{font-size:16px;font-weight:800;color:#0f172a}
+.add-activity-btn{height:32px;padding:0 14px;background:#f0f9ff;border:2px solid #bae6fd;border-radius:10px;color:#0ea5e9;font-size:12px;font-weight:700;transition:.2s}
+.add-activity-btn:hover{background:#e0f2fe}
+.activity-row{display:flex;gap:12px;position:relative}
+.activity-time{width:46px;flex-shrink:0;text-align:center;padding-top:2px}
+.activity-time span{font-size:12px;font-weight:800;color:#94a3b8;display:block}
+.activity-line{position:absolute;left:23px;top:28px;bottom:0;width:2px;background:#e2e8f0;z-index:0}
+.activity-row:last-child .activity-line{display:none}
+.activity-card{flex:1;border-radius:14px;padding:12px 14px;margin-bottom:12px;position:relative;z-index:1;border:1.5px solid}
+.activity-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+.activity-name{font-size:14px;font-weight:700}
+.activity-actions{display:flex;gap:4px;flex-shrink:0}
+.act-btn{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.2s;opacity:.6}
+.act-btn:hover{opacity:1;background:rgba(0,0,0,.08)}
+.activity-loc{font-size:12px;opacity:.7;margin-bottom:3px}
+.activity-cost{font-size:12px;opacity:.7}
+.activity-notes{font-size:12px;margin-top:8px;border-radius:8px;padding:8px 10px;background:rgba(255,255,255,.6)}
+.activity-cat-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+.empty-day{text-align:center;padding:24px;color:#94a3b8;font-size:13px}
+
+.cat-sightseeing{background:#f0f9ff;border-color:#bae6fd;color:#0369a1}.cat-sightseeing .activity-notes{background:#e0f2fe}
+.cat-food{background:#fffbeb;border-color:#fde68a;color:#92400e}.cat-food .activity-notes{background:#fef3c7}
+.cat-transport{background:#f8fafc;border-color:#e2e8f0;color:#475569}.cat-transport .activity-notes{background:#f1f5f9}
+.cat-accommodation{background:#faf5ff;border-color:#e9d5ff;color:#6d28d9}.cat-accommodation .activity-notes{background:#f3e8ff}
+.cat-activity{background:#f0fdf4;border-color:#bbf7d0;color:#15803d}.cat-activity .activity-notes{background:#dcfce7}
+.cat-shopping{background:#fff1f2;border-color:#fecdd3;color:#be123c}.cat-shopping .activity-notes{background:#ffe4e6}
+.cat-free{background:#fff7ed;border-color:#fed7aa;color:#c2410c}.cat-free .activity-notes{background:#ffedd5}
+.badge-sightseeing{background:#e0f2fe;color:#0369a1}
+.badge-food{background:#fef3c7;color:#92400e}
+.badge-transport{background:#f1f5f9;color:#475569}
+.badge-accommodation{background:#f3e8ff;color:#6d28d9}
+.badge-activity{background:#dcfce7;color:#15803d}
+.badge-shopping{background:#ffe4e6;color:#be123c}
+.badge-free{background:#ffedd5;color:#c2410c}
+
+.section-card{background:#fff;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1px solid #e2e8f0;padding:20px;margin-top:16px}
+.section-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-card-title{font-size:16px;font-weight:800;color:#0f172a}
+.packing-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.packing-item:last-child{border-bottom:none}
+.packing-check{width:20px;height:20px;border-radius:6px;border:2px solid #cbd5e1;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s}
+.packing-check.checked{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+.packing-text{font-size:13px;color:#374151;flex:1}
+.packing-text.done{text-decoration:line-through;color:#9ca3af}
+.packing-del{font-size:14px;opacity:.4;padding:4px;transition:.2s}
+.packing-del:hover{opacity:.8;color:#ef4444}
+.packing-add-row{display:flex;gap:8px;margin-top:12px}
+.packing-input{flex:1;height:36px;border:2px solid #e2e8f0;border-radius:10px;padding:0 12px;font-size:13px;outline:none;transition:.2s}
+.packing-input:focus{border-color:#bae6fd}
+.packing-add-submit{height:36px;padding:0 14px;background:#0ea5e9;color:#fff;border-radius:10px;font-size:13px;font-weight:700}
+.memo-area{width:100%;border:2px solid #e2e8f0;border-radius:12px;padding:12px;font-size:13px;color:#374151;outline:none;resize:vertical;min-height:80px;transition:.2s}
+.memo-area:focus{border-color:#bae6fd}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-box{background:#fff;border-radius:24px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-size:20px;font-weight:900;color:#0f172a;margin-bottom:20px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px;padding-top:16px;border-top:1px solid #f1f5f9}
+.modal-cancel{height:40px;padding:0 18px;border-radius:12px;border:2px solid #e2e8f0;color:#64748b;font-size:14px;font-weight:700;transition:.2s}
+.modal-cancel:hover{border-color:#cbd5e1;background:#f8fafc}
+.modal-submit{height:40px;padding:0 22px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;font-size:14px;font-weight:800;box-shadow:0 4px 12px rgba(14,165,233,.3)}
+.modal-delete{height:40px;padding:0 18px;border-radius:12px;background:#fee2e2;color:#dc2626;font-size:14px;font-weight:700;margin-right:auto}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:6px}
+.form-input{width:100%;height:40px;border:2px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:14px;color:#0f172a;outline:none;transition:.2s}
+.form-input:focus{border-color:#bae6fd;box-shadow:0 0 0 3px rgba(14,165,233,.1)}
+.form-select{width:100%;height:40px;border:2px solid #e2e8f0;border-radius:12px;padding:0 12px;font-size:14px;color:#0f172a;outline:none;background:#fff;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:.2s}
+.form-select:focus{border-color:#bae6fd}
+.form-textarea{width:100%;border:2px solid #e2e8f0;border-radius:12px;padding:10px 12px;font-size:14px;color:#0f172a;outline:none;resize:vertical;min-height:70px;transition:.2s}
+.form-textarea:focus{border-color:#bae6fd}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+@media print{
+  #nav,.add-activity-btn,.activity-actions,.packing-add-row,.add-btn,.nav-btn,#day-tabs{display:none!important}
+  body{background:#fff}
+  .day-section,.section-card{box-shadow:none;border:1px solid #e2e8f0;break-inside:avoid}
+  #trip-cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div id="nav">
+  <button id="nav-back" class="hidden">←</button>
+  <div id="nav-title">✈️ 旅のしおり</div>
+  <div id="nav-actions"></div>
+</div>
+<div id="app"></div>
+
+<script>
+// ── ストレージ（file://でも動くfallback付き）──────────
+const mem = {};
+const store = {
+  get(k){try{const v=localStorage.getItem(k);return v!=null?v:mem[k]??null;}catch{return mem[k]??null;}},
+  set(k,v){try{localStorage.setItem(k,v);}catch{}mem[k]=v;},
+};
+
+// ── カテゴリ ─────────────────────────────────────────
+const CATS={
+  sightseeing:{label:'観光',icon:'🗺️'},
+  food:{label:'食事',icon:'🍽️'},
+  transport:{label:'移動',icon:'🚃'},
+  accommodation:{label:'宿泊',icon:'🏨'},
+  activity:{label:'体験',icon:'🎯'},
+  shopping:{label:'買い物',icon:'🛍️'},
+  free:{label:'自由',icon:'☀️'},
+};
+
+// ── テンプレートデータ ────────────────────────────────
+const TEMPLATES = [
+  {
+    id:'okinawa', emoji:'🏖️', name:'沖縄', sub:'3泊4日',
+    title:'沖縄 夏の旅 🌺', destination:'沖縄', nights:3, people:'', startDate:'',
+    memo:'集合: 那覇空港 第1ターミナル\nレンタカーは事前予約推奨',
+    activities:[
+      {id:'o1',dayIdx:0,time:'11:00',name:'那覇空港着・レンタカー受取',location:'那覇空港',category:'transport',cost:'約8,000円/日',notes:'4名で割り勘。ETC持参忘れずに。'},
+      {id:'o2',dayIdx:0,time:'13:00',name:'牧志公設市場でランチ',location:'那覇市牧志',category:'food',cost:'約1,500円/人',notes:'2階の食堂で1階で買った食材を調理してもらえる。'},
+      {id:'o3',dayIdx:0,time:'15:00',name:'国際通り散策・お土産',location:'那覇市',category:'shopping',cost:'各自',notes:'ちんすこう・泡盛・海塩が定番。'},
+      {id:'o4',dayIdx:0,time:'17:30',name:'首里城見学',location:'那覇市首里',category:'sightseeing',cost:'400円',notes:'夕方は混みにくい。'},
+      {id:'o5',dayIdx:0,time:'19:30',name:'夕食：沖縄料理 ゆうなんぎい',location:'那覇市',category:'food',cost:'約2,500円/人',notes:'ゴーヤチャンプルー・ラフテーが絶品。要予約。'},
+      {id:'o6',dayIdx:1,time:'09:00',name:'美ら海水族館',location:'本部町',category:'sightseeing',cost:'2,180円',notes:'開館直後が狙い目。ジンベイザメのえさやりは10時・15時。'},
+      {id:'o7',dayIdx:1,time:'12:30',name:'ランチ：海の見えるカフェ',location:'本部町周辺',category:'food',cost:'約1,500円/人',notes:'水族館近くに複数あり。'},
+      {id:'o8',dayIdx:1,time:'14:00',name:'古宇利島ドライブ・古宇利大橋',location:'今帰仁村',category:'activity',cost:'無料',notes:'橋からの景色が絶景。ハートロックも近くにあり。'},
+      {id:'o9',dayIdx:1,time:'16:00',name:'エメラルドビーチで水遊び',location:'本部町',category:'activity',cost:'無料',notes:'水族館隣の無料ビーチ。透明度抜群。'},
+      {id:'o10',dayIdx:1,time:'19:00',name:'夕食：アグー豚の焼肉',location:'名護市',category:'food',cost:'約3,000円/人',notes:'沖縄アグー豚が絶品。要予約。'},
+      {id:'o11',dayIdx:2,time:'09:30',name:'座間味島フェリー乗船',location:'那覇・泊港',category:'transport',cost:'往復3,140円',notes:'事前予約必須！座間味村観光協会から。'},
+      {id:'o12',dayIdx:2,time:'11:00',name:'シュノーケリング',location:'座間味島',category:'activity',cost:'器材レンタル約2,000円',notes:'珊瑚礁でカラフルな魚に会える。'},
+      {id:'o13',dayIdx:2,time:'13:30',name:'ランチ：島の食堂',location:'座間味島',category:'food',cost:'約1,200円/人',notes:'海鮮丼がおすすめ。'},
+      {id:'o14',dayIdx:2,time:'16:00',name:'那覇へ帰港',location:'座間味島→那覇',category:'transport',cost:'込み',notes:'最終便を逃さないよう時間厳守。'},
+      {id:'o15',dayIdx:2,time:'18:30',name:'締めの夕食：沖縄そば',location:'那覇市',category:'food',cost:'約900円/人',notes:'花笠食堂が有名。並ぶ覚悟で。'},
+      {id:'o16',dayIdx:3,time:'09:00',name:'朝市・フルーツ購入',location:'那覇市',category:'shopping',cost:'各自',notes:'マンゴー・パイナップルが激安。保冷バッグ持参で。'},
+      {id:'o17',dayIdx:3,time:'11:00',name:'レンタカー返却',location:'那覇空港',category:'transport',cost:'—',notes:'ガソリン満タンで返却。'},
+      {id:'o18',dayIdx:3,time:'13:00',name:'那覇空港でランチ・最終土産',location:'那覇空港',category:'food',cost:'約1,500円/人',notes:'A&Wバーガーも沖縄名物。'},
+    ],
+    packingList:[
+      {id:'op1',text:'航空券・予約確認書',done:false},{id:'op2',text:'身分証明書',done:false},
+      {id:'op3',text:'現金・クレジットカード',done:false},{id:'op4',text:'日焼け止め（SPF50以上）',done:false},
+      {id:'op5',text:'水着・ラッシュガード',done:false},{id:'op6',text:'サングラス・帽子',done:false},
+      {id:'op7',text:'充電器・モバイルバッテリー',done:false},{id:'op8',text:'酔い止め（フェリー用）',done:false},
+      {id:'op9',text:'防水ケース（スマホ用）',done:false},{id:'op10',text:'折りたたみエコバッグ',done:false},
+    ],
+  },
+  {
+    id:'kyoto', emoji:'⛩️', name:'京都・奈良', sub:'2泊3日',
+    title:'京都・奈良 古都めぐり', destination:'京都・奈良', nights:2, people:'', startDate:'',
+    memo:'JR京都駅で集合\nICカードあると移動が楽。',
+    activities:[
+      {id:'k1',dayIdx:0,time:'10:00',name:'京都駅着・荷物預け',location:'京都駅',category:'transport',cost:'コインロッカー600円',notes:'宿のチェックイン前は駅のコインロッカーへ。'},
+      {id:'k2',dayIdx:0,time:'11:00',name:'伏見稲荷大社',location:'伏見区',category:'sightseeing',cost:'無料',notes:'千本鳥居は山頂まで約2時間。体力に応じて途中で折り返してもOK。'},
+      {id:'k3',dayIdx:0,time:'13:30',name:'ランチ：伏見稲荷周辺',location:'伏見区',category:'food',cost:'約1,500円/人',notes:'稲荷茶屋のきつねうどんが名物。'},
+      {id:'k4',dayIdx:0,time:'15:00',name:'清水寺',location:'東山区',category:'sightseeing',cost:'400円',notes:'舞台からの景色が絶景。夜間拝観もあり（時期による）。'},
+      {id:'k5',dayIdx:0,time:'17:00',name:'産寧坂・二年坂散策',location:'東山区',category:'shopping',cost:'各自',notes:'京都らしいお土産が揃う。抹茶スイーツも豊富。'},
+      {id:'k6',dayIdx:0,time:'19:30',name:'夕食：京料理・居酒屋',location:'祇園・河原町',category:'food',cost:'約3,000円/人',notes:'祇園四条周辺に多数あり。予約推奨。'},
+      {id:'k7',dayIdx:1,time:'08:30',name:'嵐山・竹林の道',location:'嵐山',category:'sightseeing',cost:'無料',notes:'朝早いほど空いていて写真が撮りやすい。'},
+      {id:'k8',dayIdx:1,time:'10:00',name:'天龍寺の庭園',location:'嵐山',category:'sightseeing',cost:'500円',notes:'世界遺産の回遊式庭園。紅葉・桜の時期が特に美しい。'},
+      {id:'k9',dayIdx:1,time:'12:00',name:'ランチ：嵐山の湯豆腐',location:'嵐山',category:'food',cost:'約2,500円/人',notes:'京都名物の湯豆腐。嵐山周辺に専門店多数。'},
+      {id:'k10',dayIdx:1,time:'14:00',name:'奈良・東大寺へ移動',location:'京都→奈良',category:'transport',cost:'近鉄約1,000円',notes:'京都駅から近鉄で約45分。'},
+      {id:'k11',dayIdx:1,time:'15:00',name:'東大寺・奈良の大仏',location:'奈良市',category:'sightseeing',cost:'600円',notes:'柱の穴くぐりが体験できる。'},
+      {id:'k12',dayIdx:1,time:'16:30',name:'奈良公園で鹿と触れ合い',location:'奈良市',category:'activity',cost:'鹿せんべい200円',notes:'鹿は人懐っこい。荷物の管理に注意。'},
+      {id:'k13',dayIdx:1,time:'19:00',name:'夕食：京都に戻って夕食',location:'京都市内',category:'food',cost:'約2,500円/人',notes:''},
+      {id:'k14',dayIdx:2,time:'09:00',name:'金閣寺',location:'北区',category:'sightseeing',cost:'500円',notes:'朝一番が混みにくい。外観のみなので15〜20分で見られる。'},
+      {id:'k15',dayIdx:2,time:'10:30',name:'二条城',location:'中京区',category:'sightseeing',cost:'800円',notes:'うぐいす張りの廊下が有名。広いので1時間ほど見ておく。'},
+      {id:'k16',dayIdx:2,time:'12:30',name:'ランチ：錦市場周辺',location:'中京区',category:'food',cost:'約1,500円/人',notes:'京の台所・錦市場を食べ歩きも楽しい。'},
+      {id:'k17',dayIdx:2,time:'14:00',name:'最終土産・京都駅へ',location:'京都駅',category:'shopping',cost:'各自',notes:'京都駅の伊勢丹地下が土産の宝庫。'},
+    ],
+    packingList:[
+      {id:'kp1',text:'ICカード（Suicaなど）',done:false},{id:'kp2',text:'歩きやすい靴',done:false},
+      {id:'kp3',text:'折りたたみ傘',done:false},{id:'kp4',text:'日焼け止め',done:false},
+      {id:'kp5',text:'現金（神社・バスに必要）',done:false},{id:'kp6',text:'充電器',done:false},
+    ],
+  },
+  {
+    id:'taiwan', emoji:'🇹🇼', name:'台湾', sub:'3泊4日',
+    title:'台湾 グルメ＆観光の旅', destination:'台湾（台北）', nights:3, people:'', startDate:'',
+    memo:'パスポート必須！\nWi-Fiルーターは空港で借りると便利。\n両替は空港より市内の方がレートが良い。',
+    activities:[
+      {id:'t1',dayIdx:0,time:'12:00',name:'台湾桃園空港着',location:'桃園空港',category:'transport',cost:'—',notes:'MRTで台北駅まで約35分（160台湾元）。'},
+      {id:'t2',dayIdx:0,time:'14:30',name:'ホテルチェックイン・休憩',location:'台北市内',category:'accommodation',cost:'—',notes:''},
+      {id:'t3',dayIdx:0,time:'16:00',name:'士林夜市',location:'士林区',category:'food',cost:'約500〜1,000台湾元',notes:'台湾最大の夜市。臭豆腐・胡椒餅・芒果冰が定番。'},
+      {id:'t4',dayIdx:1,time:'09:00',name:'故宮博物院',location:'士林区',category:'sightseeing',cost:'350台湾元',notes:'翡翠の白菜・肉形石は必見。混む前に早めに行くのが吉。'},
+      {id:'t5',dayIdx:1,time:'12:00',name:'ランチ：鼎泰豊（ディンタイフォン）',location:'信義区',category:'food',cost:'約600台湾元/人',notes:'小籠包の名店。並ぶことが多い。11時開店と同時に入るのがベスト。'},
+      {id:'t6',dayIdx:1,time:'14:00',name:'象山ハイキング・台北101展望',location:'信義区',category:'activity',cost:'入場料600台湾元',notes:'象山から101の全景が無料で見える。体力があれば登山もおすすめ。'},
+      {id:'t7',dayIdx:1,time:'17:00',name:'ドラッグストア・コスメ購入',location:'西門町',category:'shopping',cost:'各自',notes:'COSMED・ウエルシアで台湾コスメが安く買える。'},
+      {id:'t8',dayIdx:1,time:'19:30',name:'夕食：饒河街夜市',location:'松山区',category:'food',cost:'約400〜800台湾元',notes:'薬燉排骨スープが名物。'},
+      {id:'t9',dayIdx:2,time:'09:30',name:'九份（きゅうふん）観光',location:'新北市瑞芳区',category:'sightseeing',cost:'バス往復約120台湾元',notes:'千と千尋のモデルと言われる絶景スポット。雨の日も幻想的。'},
+      {id:'t10',dayIdx:2,time:'13:00',name:'ランチ：基隆廟口夜市',location:'基隆市',category:'food',cost:'約300台湾元/人',notes:'九份の近く。昼でも屋台が出ている。'},
+      {id:'t11',dayIdx:2,time:'16:00',name:'迪化街（ディーホアジェ）散策',location:'大同区',category:'shopping',cost:'各自',notes:'乾物・漢方・パイナップルケーキなど台湾土産の宝庫。'},
+      {id:'t12',dayIdx:2,time:'19:00',name:'夕食：牛肉麺',location:'台北市内',category:'food',cost:'約200〜400台湾元/人',notes:'台湾牛肉麺は絶対食べるべき一品。'},
+      {id:'t13',dayIdx:3,time:'09:00',name:'朝食：永和豆漿',location:'台北市内',category:'food',cost:'約100台湾元/人',notes:'台湾式朝食。豆乳・葱油餅・蛋餅が人気。'},
+      {id:'t14',dayIdx:3,time:'10:30',name:'最終お土産・空港へ',location:'桃園空港',category:'transport',cost:'MRT160台湾元',notes:'空港でもパイナップルケーキは買える。免税店もチェック。'},
+    ],
+    packingList:[
+      {id:'tp1',text:'パスポート（残存期間6ヶ月以上）',done:false},{id:'tp2',text:'海外旅行保険',done:false},
+      {id:'tp3',text:'Wi-Fiルーター（空港で予約）',done:false},{id:'tp4',text:'クレジットカード',done:false},
+      {id:'tp5',text:'台湾元（現地調達でもOK）',done:false},{id:'tp6',text:'変換プラグ（不要・台湾は同じ形）',done:false},
+      {id:'tp7',text:'日焼け止め・虫よけ',done:false},{id:'tp8',text:'薄手の羽織り（室内寒い）',done:false},
+    ],
+  },
+  {
+    id:'hokkaido', emoji:'🗻', name:'北海道', sub:'2泊3日',
+    title:'北海道 大自然と海鮮の旅', destination:'北海道（札幌・小樽）', nights:2, people:'', startDate:'',
+    memo:'冬は防寒必須。レンタカーがあると便利。\n新千歳空港から札幌まで快速約37分。',
+    activities:[
+      {id:'h1',dayIdx:0,time:'11:00',name:'新千歳空港着・札幌へ移動',location:'新千歳空港',category:'transport',cost:'快速1,150円',notes:'JR快速エアポートで札幌駅まで約37分。'},
+      {id:'h2',dayIdx:0,time:'13:00',name:'ランチ：札幌ラーメン横丁',location:'札幌市中央区',category:'food',cost:'約1,000〜1,500円/人',notes:'味噌・醤油・塩の3種を食べ比べてみては。'},
+      {id:'h3',dayIdx:0,time:'15:00',name:'大通公園・時計台',location:'札幌市中央区',category:'sightseeing',cost:'200円（時計台）',notes:'時計台は観光スポットとしてシンプルだが記念に。'},
+      {id:'h4',dayIdx:0,time:'16:30',name:'サッポロビール園',location:'札幌市東区',category:'food',cost:'約4,000円/人',notes:'ジンギスカンが名物。予約推奨。'},
+      {id:'h5',dayIdx:1,time:'09:00',name:'小樽観光・運河',location:'小樽市',category:'sightseeing',cost:'—',notes:'JR札幌→小樽約30分。小樽運河は朝と夕方がフォトジェニック。'},
+      {id:'h6',dayIdx:1,time:'10:30',name:'小樽市場で海鮮丼',location:'小樽市',category:'food',cost:'約2,000〜3,000円/人',notes:'三角市場・南樽市場が有名。新鮮なウニ・イクラが絶品。'},
+      {id:'h7',dayIdx:1,time:'13:00',name:'北一硝子・お土産',location:'小樽市',category:'shopping',cost:'各自',notes:'ガラス製品・オルゴールが小樽名物。'},
+      {id:'h8',dayIdx:1,time:'15:30',name:'定山渓温泉',location:'札幌市南区',category:'accommodation',cost:'日帰り入浴約1,000円',notes:'札幌から約1時間。紅葉スポットとしても有名。'},
+      {id:'h9',dayIdx:1,time:'19:00',name:'夕食：スープカレー',location:'札幌市内',category:'food',cost:'約1,500円/人',notes:'北海道名物スープカレー。ピカンティやSuageが人気店。'},
+      {id:'h10',dayIdx:2,time:'09:00',name:'朝食：スープカレーまたはホテルバイキング',location:'札幌市内',category:'food',cost:'約1,500円/人',notes:'北海道の食材を使ったバイキングは質が高い。'},
+      {id:'h11',dayIdx:2,time:'10:30',name:'北海道神宮・円山公園',location:'札幌市中央区',category:'sightseeing',cost:'無料',notes:'四季を通じて美しい。リスが出ることも。'},
+      {id:'h12',dayIdx:2,time:'12:30',name:'ランチ・最終お土産',location:'新千歳空港',category:'food',cost:'約1,500円/人',notes:'空港内でもロイズチョコ・白い恋人など買える。'},
+    ],
+    packingList:[
+      {id:'hp1',text:'防寒着（ダウン・コート）',done:false},{id:'hp2',text:'手袋・マフラー（冬季）',done:false},
+      {id:'hp3',text:'歩きやすいブーツ',done:false},{id:'hp4',text:'充電器・モバイルバッテリー',done:false},
+      {id:'hp5',text:'現金（地方では必要な場合も）',done:false},{id:'hp6',text:'ICカード（Suicaなど）',done:false},
+    ],
+  },
+  {
+    id:'tokyo', emoji:'🗼', name:'東京', sub:'1泊2日',
+    title:'東京 定番コース', destination:'東京', nights:1, people:'', startDate:'',
+    memo:'交通：Suicaがあると便利。\n混雑：週末は観光地が混むので早め行動推奨。',
+    activities:[
+      {id:'e1',dayIdx:0,time:'10:00',name:'浅草・浅草寺',location:'台東区',category:'sightseeing',cost:'無料',notes:'仲見世通りでお土産・食べ歩き。人形焼・雷おこしが定番。'},
+      {id:'e2',dayIdx:0,time:'12:00',name:'ランチ：浅草グルメ',location:'台東区',category:'food',cost:'約1,500円/人',notes:'天丼・もんじゃ・どじょう鍋など下町グルメが豊富。'},
+      {id:'e3',dayIdx:0,time:'14:00',name:'スカイツリー',location:'墨田区',category:'sightseeing',cost:'展望デッキ2,100円',notes:'事前オンライン予約で並ばずに入れる。'},
+      {id:'e4',dayIdx:0,time:'16:00',name:'秋葉原・電気街散策',location:'千代田区',category:'shopping',cost:'各自',notes:'ガジェット・アニメグッズ・カードゲームなど。'},
+      {id:'e5',dayIdx:0,time:'18:30',name:'夕食：新宿・歌舞伎町周辺',location:'新宿区',category:'food',cost:'約2,500円/人',notes:'思い思いのジャンルで。居酒屋からラーメンまで何でもある。'},
+      {id:'e6',dayIdx:0,time:'21:00',name:'新宿ゴールデン街・夜の散策',location:'新宿区',category:'free',cost:'各自',notes:'独特の雰囲気。小さなバーが密集。'},
+      {id:'e7',dayIdx:1,time:'09:00',name:'原宿・竹下通り',location:'渋谷区',category:'shopping',cost:'各自',notes:'クレープ・原宿ドッグなど食べ歩きが楽しい。'},
+      {id:'e8',dayIdx:1,time:'11:00',name:'明治神宮',location:'渋谷区',category:'sightseeing',cost:'無料',notes:'原宿から徒歩圏内。都会の真ん中の森。'},
+      {id:'e9',dayIdx:1,time:'13:00',name:'ランチ：渋谷・表参道',location:'渋谷区',category:'food',cost:'約1,500円/人',notes:'おしゃれなカフェ・レストランが豊富。'},
+      {id:'e10',dayIdx:1,time:'15:00',name:'お台場・チームラボ',location:'江東区',category:'activity',cost:'チームラボ3,200円',notes:'デジタルアート体験。要事前予約。'},
+    ],
+    packingList:[
+      {id:'ep1',text:'Suicaまたは交通系ICカード',done:false},{id:'ep2',text:'スニーカー（歩きやすい靴）',done:false},
+      {id:'ep3',text:'充電器・モバイルバッテリー',done:false},{id:'ep4',text:'折りたたみ傘',done:false},
+      {id:'ep5',text:'現金（屋台・神社など）',done:false},
+    ],
+  },
+];
+
+// ── DB ───────────────────────────────────────────
+const db={
+  load(){try{return JSON.parse(store.get('travel_v2')||'{"trips":[]}');}catch{return{trips:[]};}},
+  save(d){store.set('travel_v2',JSON.stringify(d));},
+  trips(){return this.load().trips;},
+  trip(id){return this.trips().find(t=>t.id===id)||null;},
+  upsert(trip){const d=this.load();const i=d.trips.findIndex(t=>t.id===trip.id);if(i>=0)d.trips[i]=trip;else d.trips.unshift(trip);this.save(d);},
+  del(id){const d=this.load();d.trips=d.trips.filter(t=>t.id!==id);this.save(d);},
+};
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function fmtDate(s){if(!s)return'';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('ja-JP',{month:'long',day:'numeric',weekday:'short'});}
+function fmtDateShort(s){if(!s)return'';const d=new Date(s+'T00:00:00');return d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',weekday:'short'});}
+function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function tripDays(trip){const arr=[];for(let i=0;i<=(trip.nights||0);i++){const date=trip.startDate?addDays(trip.startDate,i):'';arr.push({idx:i,date,label:`${i+1}日目`,dateLabel:date?fmtDateShort(date):''});}return arr;}
+function parseCost(s){if(!s)return 0;const m=s.replace(/,/g,'').match(/\d+/);return m?parseInt(m[0]):0;}
+function totalCost(trip){return(trip.activities||[]).reduce((s,a)=>s+parseCost(a.cost),0);}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+const state={view:'home',tripId:null,dayIdx:0};
+
+function render(){
+  if(state.view==='home')renderHome();
+  else if(state.view==='trip')renderTrip();
+}
+
+function renderHome(){
+  document.getElementById('nav-back').classList.add('hidden');
+  document.getElementById('nav-title').textContent='✈️ 旅のしおり';
+  document.getElementById('nav-actions').innerHTML='';
+  const trips=db.trips();
+  document.getElementById('app').innerHTML=`
+    <div id="home-wrap">
+      <div class="home-header">
+        <div><div class="home-title">旅のしおり</div><div class="home-sub">大切な旅の記録をまとめよう</div></div>
+        <button class="add-btn" id="new-trip-btn">＋ 新しい旅を作る</button>
+      </div>
+      <div id="trips-grid">
+        ${trips.length===0?`<div class="empty-state" style="grid-column:1/-1"><div class="emoji">✈️</div><p>まだ旅のしおりがありません</p><small>「新しい旅を作る」から始めましょう</small></div>`:
+          trips.map(t=>`<div class="trip-card" data-trip="${t.id}">
+            <div class="trip-card-cover">${t.emoji||'✈️'}</div>
+            <div class="trip-card-body">
+              <div class="trip-card-title">${esc(t.title)}</div>
+              <div class="trip-card-meta">
+                <span>📍 ${esc(t.destination||'未設定')}</span>
+                <span>📅 ${t.nights!=null?`${t.nights}泊${t.nights+1}日`:''}</span>
+                <span>👥 ${esc(t.people||'')}</span>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  document.getElementById('new-trip-btn').onclick=()=>openTripModal(null);
+  document.querySelectorAll('.trip-card').forEach(el=>{
+    el.onclick=()=>{state.tripId=el.dataset.trip;state.dayIdx=0;state.view='trip';render();};
+  });
+}
+
+function renderTrip(){
+  const trip=db.trip(state.tripId);
+  if(!trip){state.view='home';render();return;}
+  const back=document.getElementById('nav-back');
+  back.classList.remove('hidden');
+  back.onclick=()=>{state.view='home';render();};
+  document.getElementById('nav-title').textContent=trip.title;
+  document.getElementById('nav-actions').innerHTML=`
+    <button class="nav-btn" id="edit-trip-btn">編集</button>
+    <button class="nav-btn" id="print-btn">🖨️ 印刷</button>`;
+  document.getElementById('edit-trip-btn').onclick=()=>openTripModal(trip);
+  document.getElementById('print-btn').onclick=()=>window.print();
+  const days=tripDays(trip);
+  const day=days[state.dayIdx]||days[0];
+  const acts=(trip.activities||[]).filter(a=>a.dayIdx===day.idx).sort((a,b)=>a.time.localeCompare(b.time));
+  const cost=totalCost(trip);
+  document.getElementById('app').innerHTML=`
+    <div id="trip-cover"><div class="cover-inner">
+      <div class="cover-label">✈️ 旅のしおり</div>
+      <div class="cover-title">${esc(trip.title)}</div>
+      <div class="cover-meta">
+        <span>📍 ${esc(trip.destination||'未設定')}</span>
+        ${trip.startDate?`<span>📅 ${fmtDate(trip.startDate)}〜 ${trip.nights}泊${trip.nights+1}日</span>`:`<span>📅 ${trip.nights||0}泊${(trip.nights||0)+1}日</span>`}
+        <span>👥 ${esc(trip.people||'未設定')}</span>
+        ${cost>0?`<span>💴 計 ${cost.toLocaleString()}円</span>`:''}
+      </div>
+      ${trip.memo?`<div class="cover-memo">${esc(trip.memo)}</div>`:''}
+    </div></div>
+    <div id="trip-wrap">
+      <div id="day-tabs">
+        ${days.map(d=>`<button class="day-tab${d.idx===state.dayIdx?' active':''}" data-day="${d.idx}">${d.label}${d.dateLabel?`<span class="day-tab-date">${d.dateLabel}</span>`:''}</button>`).join('')}
+      </div>
+      <div class="day-section">
+        <div class="day-section-header">
+          <div><div class="day-section-title">${day.label}${day.dateLabel?' — '+day.dateLabel:''}</div></div>
+          <button class="add-activity-btn" data-day="${day.idx}">＋ 追加</button>
+        </div>
+        ${acts.length===0?`<div class="empty-day">まだ予定がありません。「＋ 追加」で追加しましょう</div>`:`
+          <div>${acts.map((a,i)=>{const cat=CATS[a.category]||{label:a.category,icon:'📍'};const isLast=i===acts.length-1;return`
+            <div class="activity-row">
+              <div class="activity-time"><span>${a.time||'--:--'}</span></div>
+              ${!isLast?'<div class="activity-line"></div>':''}
+              <div class="activity-card cat-${a.category}">
+                <div class="activity-cat-badge badge-${a.category}">${cat.icon} ${cat.label}</div>
+                <div class="activity-card-header">
+                  <div class="activity-name">${esc(a.name)}</div>
+                  <div class="activity-actions">
+                    <button class="act-btn edit-act" data-id="${a.id}">✏️</button>
+                    <button class="act-btn del-act" data-id="${a.id}">🗑️</button>
+                  </div>
+                </div>
+                ${a.location?`<div class="activity-loc">📍 ${esc(a.location)}</div>`:''}
+                ${a.cost?`<div class="activity-cost">💰 ${esc(a.cost)}</div>`:''}
+                ${a.notes?`<div class="activity-notes">💡 ${esc(a.notes)}</div>`:''}
+              </div>
+            </div>`}).join('')}</div>`}
+      </div>
+      <div class="section-card">
+        <div class="section-card-header"><div class="section-card-title">🎒 持ち物リスト</div></div>
+        ${(trip.packingList||[]).map(p=>`
+          <div class="packing-item">
+            <div class="packing-check${p.done?' checked':''}" data-check="${p.id}">${p.done?'✓':''}</div>
+            <span class="packing-text${p.done?' done':''}">${esc(p.text)}</span>
+            <button class="packing-del" data-delpack="${p.id}">✕</button>
+          </div>`).join('')}
+        <div class="packing-add-row">
+          <input type="text" id="packing-new" class="packing-input" placeholder="持ち物を追加..." />
+          <button class="packing-add-submit" id="packing-add-btn">追加</button>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-card-header"><div class="section-card-title">📝 メモ・集合場所など</div></div>
+        <textarea class="memo-area" id="trip-memo" placeholder="集合場所、注意事項、連絡先など...">${esc(trip.memo||'')}</textarea>
+      </div>
+    </div>`;
+
+  document.querySelectorAll('.day-tab').forEach(el=>{el.onclick=()=>{state.dayIdx=parseInt(el.dataset.day);renderTrip();};});
+  document.querySelectorAll('.add-activity-btn').forEach(el=>{el.onclick=()=>openActivityModal(trip,null,parseInt(el.dataset.day));});
+  document.querySelectorAll('.edit-act').forEach(el=>{el.onclick=e=>{e.stopPropagation();const a=(trip.activities||[]).find(x=>x.id===el.dataset.id);if(a)openActivityModal(trip,a,a.dayIdx);};});
+  document.querySelectorAll('.del-act').forEach(el=>{el.onclick=e=>{e.stopPropagation();if(!confirm('この予定を削除しますか？'))return;trip.activities=(trip.activities||[]).filter(x=>x.id!==el.dataset.id);db.upsert(trip);renderTrip();};});
+  document.querySelectorAll('.packing-check').forEach(el=>{el.onclick=()=>{const p=(trip.packingList||[]).find(x=>x.id===el.dataset.check);if(p){p.done=!p.done;db.upsert(trip);renderTrip();}};});
+  document.querySelectorAll('.packing-del').forEach(el=>{el.onclick=()=>{trip.packingList=(trip.packingList||[]).filter(p=>p.id!==el.dataset.delpack);db.upsert(trip);renderTrip();};});
+  const pi=document.getElementById('packing-new');
+  document.getElementById('packing-add-btn').onclick=()=>addPacking(trip,pi);
+  pi.onkeydown=e=>{if(e.key==='Enter')addPacking(trip,pi);};
+  const ma=document.getElementById('trip-memo');
+  let mt;ma.oninput=()=>{clearTimeout(mt);mt=setTimeout(()=>{trip.memo=ma.value;db.upsert(trip);},600);};
+}
+
+function addPacking(trip,input){
+  const text=input.value.trim();if(!text)return;
+  trip.packingList=trip.packingList||[];
+  trip.packingList.push({id:uid(),text,done:false});
+  db.upsert(trip);input.value='';renderTrip();
+}
+
+// ── 旅モーダル（テンプレート付き）────────────────────
+let selectedTpl=null;
+function openTripModal(trip){
+  const isNew=!trip;
+  selectedTpl=null;
+  const t=trip||{id:uid(),title:'',destination:'',startDate:'',nights:2,people:'',memo:'',emoji:'✈️',activities:[],packingList:[]};
+  showModal(`
+    <div class="modal-title">${isNew?'✈️ 新しい旅を作る':'✏️ 旅を編集'}</div>
+    ${isNew?`
+      <div class="form-group">
+        <label class="form-label">📋 テンプレートから作成（行き先を選ぶだけで自動入力！）</label>
+        <div class="tpl-grid" id="tpl-grid">
+          ${TEMPLATES.map(tp=>`
+            <button class="tpl-btn" data-tpl="${tp.id}">
+              <span class="tpl-emoji">${tp.emoji}</span>
+              <span class="tpl-name">${tp.name}</span>
+              <span class="tpl-sub">${tp.sub}</span>
+            </button>`).join('')}
+        </div>
+      </div>
+      <div class="tpl-divider">または手動で入力</div>
+    `:''}
+    <div class="form-group">
+      <label class="form-label">旅のタイトル</label>
+      <input class="form-input" id="m-title" value="${esc(t.title)}" placeholder="例：京都・奈良 春の旅" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">行き先</label>
+        <input class="form-input" id="m-dest" value="${esc(t.destination||'')}" placeholder="例：京都・大阪" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">絵文字</label>
+        <input class="form-input" id="m-emoji" value="${t.emoji||'✈️'}" style="font-size:20px;text-align:center" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">出発日</label>
+        <input class="form-input" id="m-date" type="date" value="${t.startDate||''}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">泊数</label>
+        <input class="form-input" id="m-nights" type="number" min="0" max="30" value="${t.nights??2}" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メンバー</label>
+      <input class="form-input" id="m-people" value="${esc(t.people||'')}" placeholder="例：田中・鈴木・佐藤" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="m-memo" placeholder="集合場所など">${esc(t.memo||'')}</textarea>
+    </div>
+    <div class="modal-footer">
+      ${!isNew?`<button class="modal-delete" id="m-del">削除</button>`:''}
+      <button class="modal-cancel" id="m-cancel">キャンセル</button>
+      <button class="modal-submit" id="m-save">${isNew?'作成する':'保存する'}</button>
+    </div>`);
+
+  if(isNew){
+    document.querySelectorAll('.tpl-btn').forEach(el=>{
+      el.onclick=()=>{
+        document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.remove('selected'));
+        el.classList.add('selected');
+        const tpl=TEMPLATES.find(tp=>tp.id===el.dataset.tpl);
+        if(tpl){
+          selectedTpl=tpl;
+          document.getElementById('m-title').value=tpl.title;
+          document.getElementById('m-dest').value=tpl.destination;
+          document.getElementById('m-emoji').value=tpl.emoji;
+          document.getElementById('m-nights').value=tpl.nights;
+          document.getElementById('m-memo').value=tpl.memo;
+        }
+      };
+    });
+  }
+  document.getElementById('m-cancel').onclick=closeModal;
+  document.getElementById('m-save').onclick=()=>{
+    const title=document.getElementById('m-title').value.trim();
+    if(!title){alert('タイトルを入力してください');return;}
+    if(isNew&&selectedTpl){
+      const newTrip={
+        ...selectedTpl,
+        id:uid(),
+        title,
+        destination:document.getElementById('m-dest').value.trim(),
+        emoji:document.getElementById('m-emoji').value.trim()||selectedTpl.emoji,
+        startDate:document.getElementById('m-date').value,
+        nights:parseInt(document.getElementById('m-nights').value)||selectedTpl.nights,
+        people:document.getElementById('m-people').value.trim(),
+        memo:document.getElementById('m-memo').value,
+        activities:selectedTpl.activities.map(a=>({...a,id:uid()})),
+        packingList:selectedTpl.packingList.map(p=>({...p,id:uid()})),
+      };
+      db.upsert(newTrip);
+      closeModal();
+      state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';
+      render();return;
+    }
+    t.title=title;
+    t.destination=document.getElementById('m-dest').value.trim();
+    t.emoji=document.getElementById('m-emoji').value.trim()||'✈️';
+    t.startDate=document.getElementById('m-date').value;
+    t.nights=parseInt(document.getElementById('m-nights').value)||0;
+    t.people=document.getElementById('m-people').value.trim();
+    t.memo=document.getElementById('m-memo').value;
+    db.upsert(t);closeModal();
+    if(isNew){state.tripId=t.id;state.dayIdx=0;state.view='trip';}
+    render();
+  };
+  if(!isNew){
+    document.getElementById('m-del').onclick=()=>{
+      if(!confirm(`「${t.title}」を削除しますか？`))return;
+      db.del(t.id);closeModal();state.view='home';render();
+    };
+  }
+}
+
+function openActivityModal(trip,act,dayIdx){
+  const isNew=!act;
+  const a=act||{id:uid(),dayIdx,time:'',name:'',location:'',category:'sightseeing',cost:'',notes:''};
+  showModal(`
+    <div class="modal-title">${isNew?'＋ 予定を追加':'✏️ 予定を編集'}</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">時刻</label><input class="form-input" id="a-time" type="time" value="${a.time||''}" /></div>
+      <div class="form-group"><label class="form-label">カテゴリ</label>
+        <select class="form-select" id="a-cat">
+          ${Object.entries(CATS).map(([k,v])=>`<option value="${k}"${a.category===k?' selected':''}>${v.icon} ${v.label}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">場所・予定名</label><input class="form-input" id="a-name" value="${esc(a.name)}" placeholder="例：金閣寺、ランチ..." /></div>
+    <div class="form-group"><label class="form-label">場所・エリア</label><input class="form-input" id="a-loc" value="${esc(a.location||'')}" placeholder="例：京都市北区" /></div>
+    <div class="form-group"><label class="form-label">費用</label><input class="form-input" id="a-cost" value="${esc(a.cost||'')}" placeholder="例：無料、1,200円" /></div>
+    <div class="form-group"><label class="form-label">メモ・ポイント</label><textarea class="form-textarea" id="a-notes" placeholder="予約必要、持ち物など">${esc(a.notes||'')}</textarea></div>
+    <div class="modal-footer">
+      ${!isNew?`<button class="modal-delete" id="a-del">削除</button>`:''}
+      <button class="modal-cancel" id="a-cancel">キャンセル</button>
+      <button class="modal-submit" id="a-save">${isNew?'追加する':'保存する'}</button>
+    </div>`);
+  document.getElementById('a-cancel').onclick=closeModal;
+  document.getElementById('a-save').onclick=()=>{
+    const name=document.getElementById('a-name').value.trim();
+    if(!name){alert('予定名を入力してください');return;}
+    a.time=document.getElementById('a-time').value;
+    a.name=name;a.category=document.getElementById('a-cat').value;
+    a.location=document.getElementById('a-loc').value.trim();
+    a.cost=document.getElementById('a-cost').value.trim();
+    a.notes=document.getElementById('a-notes').value.trim();
+    trip.activities=trip.activities||[];
+    const i=trip.activities.findIndex(x=>x.id===a.id);
+    if(i>=0)trip.activities[i]=a;else trip.activities.push(a);
+    db.upsert(trip);closeModal();renderTrip();
+  };
+  if(!isNew){document.getElementById('a-del').onclick=()=>{trip.activities=(trip.activities||[]).filter(x=>x.id!==a.id);db.upsert(trip);closeModal();renderTrip();};}
+}
+
+function showModal(html){
+  closeModal();
+  const ov=document.createElement('div');
+  ov.className='modal-overlay';ov.id='modal-overlay';
+  ov.innerHTML=`<div class="modal-box">${html}</div>`;
+  ov.onclick=e=>{if(e.target===ov)closeModal();};
+  document.body.appendChild(ov);
+}
+function closeModal(){document.getElementById('modal-overlay')?.remove();}
+
+try {
+  render();
+} catch(e) {
+  document.getElementById('app').innerHTML =
+    `<div style="padding:40px;color:red;font-size:16px;">
+      <b>エラーが発生しました：</b><br><pre>${e.message}</pre>
+     </div>`;
+  console.error(e);
+}
+</script>
+</body>
+</html>
