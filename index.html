@@ -3,31 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>旅のしおり｜旅程を一冊のしおりに</title>
-
-<!-- 基本メタ情報 -->
-<meta name="description" content="行き先と日数を選ぶだけで、旅程・持ち物・予算をまとめた本格的な旅のしおりが作れる無料Webアプリ。テンプレートから1クリックで作成、印刷すれば表紙付きの冊子になります。">
-<meta name="keywords" content="旅のしおり,旅行計画,旅程表,しおりメーカー,旅行プラン,印刷,テンプレート,沖縄,京都,北海道">
-<meta name="author" content="旅のしおりメーカー">
-<meta name="theme-color" content="#0ea5e9">
-
-<!-- Open Graph (Facebook / LINE / Slack など) -->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="旅のしおり">
-<meta property="og:title" content="旅のしおり｜旅程を一冊のしおりに">
-<meta property="og:description" content="行き先を選ぶだけで本格的な旅のしおりが完成。タイムテーブル、持ち物リスト、予算、メモまで一冊にまとめて印刷できます。沖縄・京都・北海道など人気の旅程テンプレート12種類を収録。">
-<meta property="og:image" content="ogp.svg">
-<meta property="og:image:alt" content="旅のしおり｜旅程を一冊のしおりに">
-<meta property="og:locale" content="ja_JP">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="旅のしおり｜旅程を一冊のしおりに">
-<meta name="twitter:description" content="行き先を選ぶだけで本格的な旅のしおりが完成。タイムテーブル、持ち物リスト、予算、メモまで一冊にまとめて印刷できます。">
-<meta name="twitter:image" content="ogp.svg">
-
-<!-- ファビコン (絵文字) -->
-<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;✈️&lt;/text&gt;&lt;/svg&gt;">
+<title>旅のしおり</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f9ff;color:#1e293b;min-height:100vh}
@@ -164,141 +140,105 @@ input,select,textarea{font-family:inherit}
 .trip-card-del{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.35);color:#fff;font-size:13px;line-height:22px;text-align:center;cursor:pointer;z-index:10;opacity:0;transition:.15s;border:none;padding:0}
 .trip-card-wrap:hover .trip-card-del{opacity:1}
 
-/* ── 印刷用「旅のしおり」レイアウト ──────────────── */
-#print-shiori{display:none}
-
-@page{size:A4 portrait;margin:14mm 12mm}
-
 @media print{
-  /* 画面用UIを全て非表示 */
-  #nav,#app,.modal-overlay{display:none!important}
+  /* 非表示要素 */
+  #nav,.add-activity-btn,.activity-actions,.packing-add-row,.add-btn,.nav-btn,#day-tabs,
+  .packing-del,.packing-check,.memo-area{display:none!important}
 
-  html,body{background:#fff!important;color:#1f2937;
-    font-family:'Hiragino Mincho Pro','Yu Mincho','MS PMincho','Hiragino Kaku Gothic Pro','Meiryo',serif;
-    -webkit-print-color-adjust:exact;print-color-adjust:exact;
-  }
+  body{background:#fff;font-family:'Hiragino Maru Gothic Pro','Hiragino Kaku Gothic Pro','Meiryo',sans-serif}
   *{box-shadow:none!important}
 
-  /* しおり本体表示 */
-  #print-shiori{display:block;color:#1f2937;line-height:1.55}
-  #print-shiori *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .ps-page{page-break-after:always;position:relative;min-height:265mm;padding:4mm 2mm}
-  .ps-page:last-child{page-break-after:auto}
-
-  /* ── 共通ヘッダー（各ページ上部の小さなタイトル）── */
-  .ps-header{display:flex;justify-content:space-between;align-items:center;
-    border-bottom:1.5px solid #0f172a;padding-bottom:4px;margin-bottom:10px;
-    font-size:9pt;letter-spacing:.08em;color:#475569}
-  .ps-header-title{font-weight:700;color:#1e293b}
-  .ps-header-page{font-family:'Georgia',serif;font-style:italic}
-
-  /* ─────────── 表紙ページ ─────────── */
-  .ps-cover{
-    background:linear-gradient(160deg,#0c4a6e 0%,#1e3a8a 55%,#4c1d95 100%);
-    color:#fff;padding:0;margin:-14mm -12mm;min-height:297mm;
+  /* カバー */
+  #trip-cover{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    border-radius:0;padding:64px 56px 56px;
+    background:linear-gradient(135deg,#ffecd2 0%,#fcb69f 45%,#a18cd1 100%)!important;
+    page-break-after:always;
+    min-height:70vh;
     display:flex;align-items:center;justify-content:center;
-    page-break-after:always;position:relative;overflow:hidden;
+    text-align:center;
   }
-  .ps-cover::before{content:'';position:absolute;inset:14mm 12mm;
-    border:2px solid rgba(255,255,255,.45);border-radius:4px;pointer-events:none}
-  .ps-cover::after{content:'';position:absolute;inset:16mm 14mm;
-    border:1px solid rgba(255,255,255,.25);border-radius:2px;pointer-events:none}
-  .ps-cover-inner{text-align:center;padding:30mm 20mm;position:relative;z-index:1;width:100%}
-  .ps-cover-tag{font-size:10pt;letter-spacing:.5em;font-family:'Georgia',serif;
-    color:rgba(255,255,255,.85);margin-bottom:6mm;padding-left:.5em}
-  .ps-cover-emoji{font-size:54pt;line-height:1;margin-bottom:8mm}
-  .ps-cover-title{font-size:32pt;font-weight:900;line-height:1.35;margin-bottom:6mm;
-    color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.25);
-    font-family:'Hiragino Mincho Pro','Yu Mincho',serif}
-  .ps-cover-ornament{font-size:14pt;color:rgba(255,255,255,.7);margin:6mm 0 10mm;letter-spacing:.3em}
-  .ps-cover-info{display:inline-block;text-align:left;border-top:1px solid rgba(255,255,255,.4);
-    border-bottom:1px solid rgba(255,255,255,.4);padding:6mm 10mm;margin:4mm auto}
-  .ps-cover-info-row{display:flex;gap:6mm;font-size:11pt;margin:2mm 0;align-items:center}
-  .ps-cover-info-label{min-width:18mm;font-size:8.5pt;letter-spacing:.15em;
-    color:rgba(255,255,255,.65);font-family:'Georgia',serif}
-  .ps-cover-info-val{font-weight:600}
-  .ps-cover-footer{position:absolute;bottom:18mm;left:0;right:0;text-align:center;
-    font-size:8.5pt;letter-spacing:.4em;color:rgba(255,255,255,.6);font-family:'Georgia',serif}
+  .cover-inner{text-align:center;width:100%}
+  .cover-label{
+    font-size:12px;letter-spacing:.22em;margin-bottom:24px;
+    display:inline-block;
+    border:1.5px solid rgba(255,255,255,.7);
+    border-radius:20px;padding:5px 18px;
+    background:rgba(255,255,255,.28);color:#fff;
+  }
+  .cover-title{
+    font-size:38px;font-weight:900;margin-bottom:22px;line-height:1.45;
+    color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.12);
+  }
+  .cover-meta{
+    font-size:14px;gap:10px;flex-wrap:wrap;
+    display:inline-flex;justify-content:center;
+    background:rgba(255,255,255,.3);border-radius:18px;padding:10px 20px;color:#fff;
+  }
+  .cover-memo{
+    font-size:13px;margin-top:22px;
+    background:rgba(255,255,255,.28);border-radius:16px;padding:12px 20px;
+    line-height:1.9;white-space:pre-line;color:#fff;
+    max-width:500px;margin-left:auto;margin-right:auto;
+  }
 
-  /* ─────────── 旅程概要ページ ─────────── */
-  .ps-section-title{font-size:18pt;font-weight:900;color:#0c4a6e;
-    margin:0 0 6mm;padding-bottom:3mm;
-    border-bottom:3px double #0c4a6e;letter-spacing:.05em}
-  .ps-section-title small{font-size:9pt;font-weight:400;letter-spacing:.3em;
-    color:#64748b;margin-left:4mm;font-family:'Georgia',serif}
+  /* しおり本文エリア */
+  #trip-wrap{padding:28px 44px;max-width:100%}
 
-  .ps-summary-table{width:100%;border-collapse:collapse;margin-bottom:8mm;font-size:10pt}
-  .ps-summary-table th{background:#0c4a6e;color:#fff;padding:3mm 4mm;
-    text-align:left;font-weight:700;font-size:9.5pt;letter-spacing:.1em;border:1px solid #0c4a6e}
-  .ps-summary-table td{padding:3mm 4mm;border:1px solid #cbd5e1;vertical-align:top}
-  .ps-summary-table tr:nth-child(even) td{background:#f1f5f9}
-  .ps-summary-day{font-weight:800;color:#0c4a6e;white-space:nowrap;width:30mm}
-  .ps-summary-date{font-size:8.5pt;color:#64748b;display:block;margin-top:1mm;font-weight:400}
-  .ps-summary-hl{font-size:9.5pt;line-height:1.6}
-  .ps-summary-hl-chip{display:inline-block;background:#e0f2fe;color:#0369a1;
-    padding:.5mm 2mm;border-radius:2mm;font-size:8.5pt;margin:0 1mm 1mm 0;font-weight:600}
+  /* 日程セクション */
+  .day-section{
+    border:none;border-radius:0;
+    padding:0;margin-bottom:0;
+    page-break-inside:avoid;
+    page-break-before:always;
+  }
+  .day-section-header{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    background:linear-gradient(90deg,#f6d365,#fda085)!important;
+    color:#fff;padding:12px 20px;border-radius:14px;
+    margin-bottom:18px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .day-section-title{font-size:18px;font-weight:900;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.12)}
 
-  .ps-stats{display:flex;gap:4mm;margin-bottom:8mm}
-  .ps-stat-card{flex:1;border:1.5px solid #0c4a6e;padding:4mm 5mm;text-align:center;border-radius:2mm}
-  .ps-stat-label{font-size:8.5pt;letter-spacing:.2em;color:#64748b;
-    font-family:'Georgia',serif;margin-bottom:2mm}
-  .ps-stat-value{font-size:16pt;font-weight:900;color:#0c4a6e}
-  .ps-stat-unit{font-size:9pt;font-weight:400;color:#475569;margin-left:1mm}
+  /* タイムライン */
+  .activity-row{display:flex;gap:0;margin-bottom:12px;align-items:flex-start}
+  .activity-time{width:58px;min-width:58px;font-size:12px;font-weight:700;color:#f97316;padding-top:7px;text-align:right;padding-right:12px}
+  .activity-card{
+    flex:1;border-left:3px solid #e2e8f0;padding:8px 14px;border-radius:0 12px 12px 0;
+    background:#fffdf9;break-inside:avoid;
+  }
+  .activity-line{display:none}
+  .activity-cat-badge{font-size:11px;font-weight:700;margin-bottom:3px;opacity:.75}
+  .activity-name{font-size:14px;font-weight:800;color:#1e293b}
+  .activity-loc{font-size:11px;color:#64748b;margin-top:3px}
+  .activity-cost{font-size:11px;color:#059669;margin-top:3px;font-weight:600}
+  .activity-notes{
+    font-size:11px;color:#475569;margin-top:5px;line-height:1.75;
+    background:#fff8f0;padding:5px 10px;border-radius:8px;
+    border-left:2px solid #fda085;
+  }
 
-  .ps-memo-box{border:1.5px solid #1e293b;padding:5mm 6mm;background:#fffbeb;border-radius:2mm}
-  .ps-memo-box-title{font-size:11pt;font-weight:800;color:#92400e;
-    margin-bottom:2mm;padding-bottom:2mm;border-bottom:1px dashed #d6a26a}
-  .ps-memo-body{font-size:10pt;line-height:1.8;white-space:pre-line;color:#3f3f46}
+  /* カテゴリ別ボーダー＋背景 */
+  .cat-food{border-left-color:#f97316!important;background:#fff7f0!important}
+  .cat-sightseeing{border-left-color:#38bdf8!important;background:#f0f9ff!important}
+  .cat-transport{border-left-color:#a78bfa!important;background:#f5f3ff!important}
+  .cat-accommodation{border-left-color:#f472b6!important;background:#fdf2f8!important}
+  .cat-activity{border-left-color:#34d399!important;background:#f0fdf4!important}
+  .cat-shopping{border-left-color:#fbbf24!important;background:#fffbeb!important}
+  .cat-free{border-left-color:#94a3b8!important;background:#f8fafc!important}
 
-  /* ─────────── 日別タイムテーブルページ ─────────── */
-  .ps-day-banner{background:linear-gradient(90deg,#0c4a6e,#3730a3);color:#fff;
-    padding:5mm 7mm;border-radius:2mm;display:flex;align-items:baseline;
-    justify-content:space-between;margin-bottom:6mm}
-  .ps-day-banner-left{display:flex;align-items:baseline;gap:5mm}
-  .ps-day-banner-num{font-family:'Georgia',serif;font-style:italic;font-size:13pt;letter-spacing:.15em;
-    color:rgba(255,255,255,.85)}
-  .ps-day-banner-title{font-size:18pt;font-weight:900;letter-spacing:.05em}
-  .ps-day-banner-date{font-size:10pt;color:rgba(255,255,255,.85);letter-spacing:.1em}
-
-  .ps-timeline{position:relative;padding-left:24mm}
-  .ps-timeline::before{content:'';position:absolute;left:22mm;top:2mm;bottom:2mm;
-    width:1.5px;background:#cbd5e1}
-  .ps-event{position:relative;margin-bottom:4mm;page-break-inside:avoid}
-  .ps-event::before{content:'';position:absolute;left:-3mm;top:2.5mm;width:3mm;height:3mm;
-    border-radius:50%;background:#0c4a6e;border:2px solid #fff;box-shadow:0 0 0 1.5px #0c4a6e}
-  .ps-event-time{position:absolute;left:-24mm;top:1.5mm;width:18mm;text-align:right;
-    font-size:11pt;font-weight:800;color:#0c4a6e;font-family:'Georgia',serif}
-  .ps-event-card{border:1px solid #cbd5e1;border-left:4px solid #0c4a6e;padding:3mm 5mm;
-    border-radius:0 2mm 2mm 0;background:#fafafa;break-inside:avoid}
-  .ps-event-card.cat-food{border-left-color:#f97316;background:#fffbeb}
-  .ps-event-card.cat-sightseeing{border-left-color:#0ea5e9;background:#f0f9ff}
-  .ps-event-card.cat-transport{border-left-color:#8b5cf6;background:#faf5ff}
-  .ps-event-card.cat-accommodation{border-left-color:#ec4899;background:#fdf2f8}
-  .ps-event-card.cat-activity{border-left-color:#10b981;background:#f0fdf4}
-  .ps-event-card.cat-shopping{border-left-color:#f59e0b;background:#fff7ed}
-  .ps-event-card.cat-free{border-left-color:#64748b;background:#f8fafc}
-  .ps-event-cat{display:inline-block;font-size:8pt;font-weight:700;letter-spacing:.1em;
-    background:#1e293b;color:#fff;padding:.5mm 2mm;border-radius:1mm;margin-bottom:1.5mm}
-  .ps-event-name{font-size:11.5pt;font-weight:800;color:#1e293b;margin-bottom:1mm;line-height:1.4}
-  .ps-event-meta{display:flex;flex-wrap:wrap;gap:3mm;font-size:9pt;color:#475569;margin-bottom:1mm}
-  .ps-event-meta-item{display:flex;align-items:center;gap:1mm}
-  .ps-event-notes{font-size:9pt;line-height:1.6;color:#3f3f46;
-    border-top:1px dashed #cbd5e1;padding-top:1.5mm;margin-top:1.5mm}
-
-  .ps-day-empty{padding:20mm 6mm;text-align:center;color:#94a3b8;font-size:11pt;
-    border:2px dashed #e2e8f0;border-radius:3mm}
-
-  /* ─────────── 持ち物リストページ ─────────── */
-  .ps-packing-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm;margin-bottom:8mm}
-  .ps-packing-row{display:flex;align-items:center;gap:3mm;padding:2mm 0;
-    border-bottom:1px dotted #94a3b8;font-size:10.5pt;break-inside:avoid}
-  .ps-packing-box{width:4mm;height:4mm;border:1.5px solid #1e293b;flex-shrink:0;border-radius:.5mm}
-  .ps-packing-empty{color:#94a3b8;font-size:10pt;padding:6mm;text-align:center}
-
-  /* ─────────── 自由メモページ ─────────── */
-  .ps-free-notes{display:flex;flex-direction:column;gap:7.5mm;margin-top:4mm}
-  .ps-free-line{border-bottom:1px solid #cbd5e1;height:0}
-  .ps-free-hint{font-size:9pt;color:#94a3b8;text-align:center;margin-top:6mm;letter-spacing:.2em}
+  /* 持ち物リスト */
+  .section-card{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;
+    border:2px dashed #fda085;border-radius:16px;padding:18px 22px;margin-top:30px;break-inside:avoid;
+    background:#fffdf9!important;
+  }
+  .section-card-title{font-size:15px;font-weight:800;margin-bottom:14px;color:#1e293b}
+  .packing-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed #fde8d8}
+  .packing-item:last-child{border-bottom:none}
+  .packing-text{font-size:13px;color:#374151}
+  .packing-text::before{content:'✈ ';font-size:13px;color:#fda085}
 }
 </style>
 </head>
@@ -309,7 +249,6 @@ input,select,textarea{font-family:inherit}
   <div id="nav-actions"></div>
 </div>
 <div id="app"></div>
-<div id="print-shiori"></div>
 
 <script>
 // ── ストレージ（file://でも動くfallback付き）──────────
@@ -734,11 +673,17 @@ function renderTrip(){
   document.getElementById('nav-title').textContent=trip.title;
   document.getElementById('nav-actions').innerHTML=`
     <button class="nav-btn" id="edit-trip-btn">編集</button>
-    <button class="nav-btn" id="print-btn">🖨️ 印刷</button>`;
+    <button class="nav-btn" id="print-btn">🖨️ プリント</button>`;
   document.getElementById('edit-trip-btn').onclick=()=>openTripModal(trip);
-  document.getElementById('print-btn').onclick=()=>{
-    document.getElementById('print-shiori').innerHTML=buildPrintShiori(trip);
-    window.print();
+  document.getElementById('print-btn').onclick=function(){
+    if(/iphone|ipod/i.test(navigator.userAgent)){
+      // iOS Safari: window.print() requires a tiny delay to fire correctly
+      setTimeout(function(){
+        try{window.print();}catch(e){alert('画面下の共有ボタン →「プリント」を選んでください');}
+      },80);
+    }else{
+      window.print();
+    }
   };
   const days=tripDays(trip);
   const day=days[state.dayIdx]||days[0];
@@ -822,172 +767,6 @@ function addPacking(trip,input){
   trip.packingList=trip.packingList||[];
   trip.packingList.push({id:uid(),text,done:false});
   db.upsert(trip);input.value='';renderTrip();
-}
-
-// ── 印刷用「旅のしおり」生成 ─────────────────────────
-function buildPrintShiori(trip){
-  const days=tripDays(trip);
-  const acts=(trip.activities||[]).slice().sort((a,b)=>a.time.localeCompare(b.time));
-  const cost=totalCost(trip);
-  const periodLabel=trip.startDate
-    ? `${fmtDate(trip.startDate)} 〜 ${fmtDate(addDays(trip.startDate,trip.nights||0))}`
-    : `${trip.nights||0}泊${(trip.nights||0)+1}日`;
-  const headerTitle=esc(trip.title||'旅のしおり');
-  const totalPages=2+days.length+2; // 表紙 + 概要 + 各日 + 持ち物 + 自由メモ
-
-  const header=(pageNum)=>`
-    <div class="ps-header">
-      <div class="ps-header-title">${trip.emoji||'✈️'} ${headerTitle}</div>
-      <div class="ps-header-page">— ${pageNum} / ${totalPages} —</div>
-    </div>`;
-
-  // ── 表紙 ─────────────────────────────────
-  const coverPage=`
-    <section class="ps-cover">
-      <div class="ps-cover-inner">
-        <div class="ps-cover-tag">TRAVEL ITINERARY</div>
-        <div class="ps-cover-emoji">${trip.emoji||'✈️'}</div>
-        <div class="ps-cover-title">${esc(trip.title||'旅のしおり')}</div>
-        <div class="ps-cover-ornament">❖ ❖ ❖</div>
-        <div class="ps-cover-info">
-          ${trip.destination?`
-            <div class="ps-cover-info-row">
-              <span class="ps-cover-info-label">DESTINATION</span>
-              <span class="ps-cover-info-val">${esc(trip.destination)}</span>
-            </div>`:''}
-          <div class="ps-cover-info-row">
-            <span class="ps-cover-info-label">PERIOD</span>
-            <span class="ps-cover-info-val">${periodLabel}</span>
-          </div>
-          <div class="ps-cover-info-row">
-            <span class="ps-cover-info-label">DURATION</span>
-            <span class="ps-cover-info-val">${trip.nights||0}泊${(trip.nights||0)+1}日</span>
-          </div>
-          ${trip.people?`
-            <div class="ps-cover-info-row">
-              <span class="ps-cover-info-label">MEMBERS</span>
-              <span class="ps-cover-info-val">${esc(trip.people)}</span>
-            </div>`:''}
-        </div>
-      </div>
-      <div class="ps-cover-footer">— Have a wonderful journey —</div>
-    </section>`;
-
-  // ── 概要ページ ───────────────────────────
-  const dayRows=days.map((d,i)=>{
-    const dayActs=acts.filter(a=>a.dayIdx===d.idx);
-    const cats={};
-    dayActs.forEach(a=>{const k=a.category;cats[k]=(cats[k]||0)+1;});
-    const highlights=dayActs.slice(0,3).map(a=>esc(a.name)).join('、')||'予定なし';
-    return `
-      <tr>
-        <td class="ps-summary-day">${d.label}${d.dateLabel?`<span class="ps-summary-date">${d.dateLabel}</span>`:''}</td>
-        <td class="ps-summary-hl">
-          ${Object.entries(cats).map(([k,n])=>{const c=CATS[k];return c?`<span class="ps-summary-hl-chip">${c.icon} ${c.label} ${n}</span>`:'';}).join('')}
-          <div>${highlights}</div>
-        </td>
-      </tr>`;
-  }).join('');
-
-  const overviewPage=`
-    <div class="ps-page">
-      ${header(2)}
-      <div class="ps-section-title">旅程概要 <small>OVERVIEW</small></div>
-      <table class="ps-summary-table">
-        <thead>
-          <tr><th style="width:32mm">日付</th><th>主な予定</th></tr>
-        </thead>
-        <tbody>${dayRows}</tbody>
-      </table>
-      <div class="ps-stats">
-        <div class="ps-stat-card">
-          <div class="ps-stat-label">DAYS</div>
-          <div class="ps-stat-value">${(trip.nights||0)+1}<span class="ps-stat-unit">日間</span></div>
-        </div>
-        <div class="ps-stat-card">
-          <div class="ps-stat-label">PLANS</div>
-          <div class="ps-stat-value">${acts.length}<span class="ps-stat-unit">件</span></div>
-        </div>
-        ${cost>0?`
-          <div class="ps-stat-card">
-            <div class="ps-stat-label">BUDGET</div>
-            <div class="ps-stat-value">${cost.toLocaleString()}<span class="ps-stat-unit">円</span></div>
-          </div>`:''}
-      </div>
-      ${trip.memo?`
-        <div class="ps-memo-box">
-          <div class="ps-memo-box-title">📌 集合場所・連絡事項</div>
-          <div class="ps-memo-body">${esc(trip.memo)}</div>
-        </div>`:''}
-    </div>`;
-
-  // ── 日別ページ ───────────────────────────
-  const dayPages=days.map((d,i)=>{
-    const dayActs=acts.filter(a=>a.dayIdx===d.idx);
-    const eventsHtml=dayActs.length===0
-      ? `<div class="ps-day-empty">この日の予定は未定です</div>`
-      : `<div class="ps-timeline">${dayActs.map(a=>{
-          const cat=CATS[a.category]||{label:a.category,icon:'📍'};
-          return `
-            <div class="ps-event">
-              <div class="ps-event-time">${a.time||'--:--'}</div>
-              <div class="ps-event-card cat-${a.category}">
-                <div class="ps-event-cat">${cat.icon} ${cat.label}</div>
-                <div class="ps-event-name">${esc(a.name)}</div>
-                <div class="ps-event-meta">
-                  ${a.location?`<span class="ps-event-meta-item">📍 ${esc(a.location)}</span>`:''}
-                  ${a.cost?`<span class="ps-event-meta-item">💴 ${esc(a.cost)}</span>`:''}
-                </div>
-                ${a.notes?`<div class="ps-event-notes">💡 ${esc(a.notes)}</div>`:''}
-              </div>
-            </div>`;
-        }).join('')}</div>`;
-    return `
-      <div class="ps-page">
-        ${header(3+i)}
-        <div class="ps-day-banner">
-          <div class="ps-day-banner-left">
-            <div class="ps-day-banner-num">DAY ${i+1}</div>
-            <div class="ps-day-banner-title">${d.label}</div>
-          </div>
-          <div class="ps-day-banner-date">${d.dateLabel||''}</div>
-        </div>
-        ${eventsHtml}
-      </div>`;
-  }).join('');
-
-  // ── 持ち物ページ ──────────────────────────
-  const packing=trip.packingList||[];
-  const packingPage=`
-    <div class="ps-page">
-      ${header(2+days.length+1)}
-      <div class="ps-section-title">持ち物リスト <small>PACKING LIST</small></div>
-      ${packing.length===0
-        ? `<div class="ps-packing-empty">— 持ち物リストは登録されていません —</div>`
-        : `<div class="ps-packing-grid">${packing.map(p=>`
-            <div class="ps-packing-row"><div class="ps-packing-box"></div>${esc(p.text)}</div>`).join('')}</div>`}
-      <div class="ps-memo-box" style="margin-top:8mm">
-        <div class="ps-memo-box-title">✓ 出発前チェック</div>
-        <div class="ps-packing-grid" style="margin:0">
-          <div class="ps-packing-row"><div class="ps-packing-box"></div>戸締まり・火元の確認</div>
-          <div class="ps-packing-row"><div class="ps-packing-box"></div>家電のコンセントを抜く</div>
-          <div class="ps-packing-row"><div class="ps-packing-box"></div>身分証・チケットを最終確認</div>
-          <div class="ps-packing-row"><div class="ps-packing-box"></div>充電器・モバイルバッテリー</div>
-        </div>
-      </div>
-    </div>`;
-
-  // ── 自由メモページ ────────────────────────
-  const lines=Array.from({length:22}).map(()=>`<div class="ps-free-line"></div>`).join('');
-  const freeNotesPage=`
-    <div class="ps-page">
-      ${header(totalPages)}
-      <div class="ps-section-title">自由メモ <small>NOTES</small></div>
-      <div class="ps-free-notes">${lines}</div>
-      <div class="ps-free-hint">✈ 素敵な旅を ✈</div>
-    </div>`;
-
-  return coverPage+overviewPage+dayPages+packingPage+freeNotesPage;
 }
 
 // ── 旅モーダル（テンプレート付き）────────────────────
