@@ -776,7 +776,7 @@ function renderHome(){
                 <div class="trip-card-title">${esc(t.title)}</div>
                 <div class="trip-card-meta">
                   <span>📍 ${esc(t.destination||'未設定')}</span>
-                  <span>📅 ${t.nights!=null?`${t.nights}泊${t.nights+1}日`:''}</span>
+                  <span>📅 ${(()=>{const s=t.startDate?fmtDateShort(t.startDate):null;const e=(t.startDate&&t.nights)?fmtDateShort(addDays(t.startDate,t.nights)):null;return s?(e&&t.nights>0?`${s}〜${e}`:`${s}`):(t.nights!=null?`${t.nights}泊${t.nights+1}日`:'');})()}</span>
                   <span>👥 ${esc(t.people||'')}</span>
                 </div>
               </div>
@@ -862,7 +862,7 @@ function renderTrip(){
                     <button class="act-btn del-act" data-id="${a.id}">🗑️</button>
                   </div>
                 </div>
-                ${a.location?`<div class="activity-loc">📍 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline dotted">${esc(a.location)}</a></div>`:''}
+                ${a.location?`<div class="activity-loc">📍 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.name+(a.location?' '+a.location:''))}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline dotted">${esc(a.location)}</a></div>`:''}
                 ${a.cost?`<div class="activity-cost">💰 ${esc(a.cost)}</div>`:''}
                 ${a.notes?`<div class="activity-notes">💡 ${esc(a.notes)}</div>`:''}
               </div>
