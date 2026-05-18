@@ -654,6 +654,79 @@ const TEMPLATES = [
       {id:'oip5',text:'現金（地元の小さな温泉は現金のみ）',done:false},{id:'oip6',text:'エコバッグ・保冷バッグ（海産物お土産）',done:false},
     ],
   },
+  {
+    id:'nagano',emoji:'🏔️',name:'長野',sub:'2泊3日',
+    title:'長野 山と温泉と文化の旅',destination:'長野',nights:2,people:'',startDate:'',
+    memo:'交通：東京から北陸新幹線で長野駅まで約80分。松本へは特急「あずさ」が便利。\n長野市と松本市は電車で1時間。レンタカーがあると上高地・戸隠など広域観光が楽。',
+    activities:[
+      {id:'nag1',dayIdx:0,time:'10:00',name:'長野駅着・善光寺参拝',location:'長野市',category:'sightseeing',cost:'無料',notes:'お戒壇めぐり（100円）の真っ暗回廊体験が人気。'},
+      {id:'nag2',dayIdx:0,time:'12:00',name:'門前町でランチ・信州そば',location:'長野市西之門町',category:'food',cost:'約1,200円/人',notes:'善光寺門前のそば屋でざるそば＆山菜料理を。'},
+      {id:'nag3',dayIdx:0,time:'13:30',name:'松本城',location:'松本市',category:'sightseeing',cost:'700円',notes:'国宝天守。黒と白のコントラストが美しい現存12天守のひとつ。'},
+      {id:'nag4',dayIdx:0,time:'15:30',name:'縄手通り・中町通り散策',location:'松本市',category:'free',cost:'無料',notes:'クラフト・カフェが並ぶ松本らしい商店街。'},
+      {id:'nag5',dayIdx:0,time:'18:00',name:'夕食：信州牛・馬刺し・山賊焼き',location:'松本市',category:'food',cost:'約3,000円/人',notes:'信州牛ステーキ・馬刺しが松本の名物。山賊焼きも必食。'},
+      {id:'nag6',dayIdx:1,time:'07:00',name:'上高地・早朝の河童橋',location:'上高地',category:'sightseeing',cost:'シャトルバス往復2,400円',notes:'4〜11月のみ入山可。早朝は霧が幻想的。大正池→河童橋の散策コース約2時間。'},
+      {id:'nag7',dayIdx:1,time:'12:00',name:'上高地のランチ',location:'上高地',category:'food',cost:'約1,500円/人',notes:'河童橋周辺の食堂で山の恵みを。'},
+      {id:'nag8',dayIdx:1,time:'14:30',name:'戸隠神社・奥社参拝',location:'長野市戸隠',category:'sightseeing',cost:'無料',notes:'樹齢400年の杉並木が圧巻。神秘的な霊山。'},
+      {id:'nag9',dayIdx:1,time:'17:00',name:'野沢温泉チェックイン',location:'野沢温泉',category:'accommodation',cost:'—',notes:'外湯13ヶ所が無料で楽しめる温泉地。'},
+      {id:'nag10',dayIdx:2,time:'09:00',name:'小布施・北斎館',location:'小布施町',category:'activity',cost:'1,000円',notes:'葛飾北斎が晩年を過ごした町。北斎の天井画が残る祭屋台は必見。'},
+      {id:'nag11',dayIdx:2,time:'11:30',name:'小布施ランチ・栗スイーツ',location:'小布施町',category:'food',cost:'約1,500円/人',notes:'栗おこわ・モンブラン・栗アイスなど栗づくし。'},
+      {id:'nag12',dayIdx:2,time:'13:30',name:'帰路・長野駅',location:'長野駅',category:'transport',cost:'—',notes:'新幹線で東京へ。お土産は野沢菜・おやき・七味唐辛子を。'},
+    ],
+    packingList:[
+      {id:'nagp1',text:'歩きやすいスニーカー（上高地・神社）',done:false},{id:'nagp2',text:'温泉セット（タオル・着替え）',done:false},
+      {id:'nagp3',text:'防寒着（山は平地より10℃低い）',done:false},{id:'nagp4',text:'レインウェア（上高地は天気変わりやすい）',done:false},
+      {id:'nagp5',text:'現金（山間部・老舗は現金のみ多い）',done:false},{id:'nagp6',text:'エコバッグ（リンゴのお土産重い）',done:false},
+    ],
+  },
+  {
+    id:'korea',emoji:'🇰🇷',name:'韓国',sub:'3泊4日',
+    title:'ソウル グルメと文化の旅',destination:'韓国・ソウル',nights:3,people:'',startDate:'',
+    memo:'交通：成田・羽田・関空から仁川/金浦空港へ2〜3時間。AREXでソウル駅まで約43分。\nT-moneyカードをコンビニで購入すると地下鉄・バスが便利。',
+    activities:[
+      {id:'kr1',dayIdx:0,time:'13:00',name:'仁川空港着・ホテルへ',location:'仁川国際空港',category:'transport',cost:'AREX約600円',notes:'T-moneyカードを空港のコンビニで購入。AREXでソウル駅まで約43分。'},
+      {id:'kr2',dayIdx:0,time:'16:00',name:'明洞散策・コスメショッピング',location:'明洞',category:'shopping',cost:'各自',notes:'韓国コスメの聖地。COSRX・ROMAND・laneige等の路面店が集中。'},
+      {id:'kr3',dayIdx:0,time:'18:30',name:'夕食：サムギョプサル',location:'明洞周辺',category:'food',cost:'約2,000円/人',notes:'豚三枚肉を炭火で焼く韓国BBQ。サンチュ巻き・キムチ・チゲで大満足。'},
+      {id:'kr4',dayIdx:1,time:'09:00',name:'景福宮・韓服レンタル',location:'景福宮',category:'sightseeing',cost:'宮殿600円・韓服1,000〜2,000円',notes:'韓服（チマチョゴリ）を着れば入場無料になる。'},
+      {id:'kr5',dayIdx:1,time:'11:30',name:'北村韓屋村・仁寺洞散策',location:'北村・仁寺洞',category:'sightseeing',cost:'無料',notes:'伝統的な瓦屋根の家並み。仁寺洞は伝統工芸品の街。'},
+      {id:'kr6',dayIdx:1,time:'13:00',name:'ランチ：石焼きビビンバ',location:'仁寺洞',category:'food',cost:'約1,200円/人',notes:'全州スタイルが本格的。ソルロンタン（牛骨スープ）も優しい味。'},
+      {id:'kr7',dayIdx:1,time:'15:00',name:'東大門DDP・ショッピング',location:'東大門',category:'shopping',cost:'各自',notes:'24時間営業の市場。夜が本番のエリア。'},
+      {id:'kr8',dayIdx:2,time:'09:30',name:'漢江公園・サイクリング',location:'漢江',category:'activity',cost:'レンタサイクル約500円/時',notes:'漢江沿いの広大な公園。漢江チキンも名物。'},
+      {id:'kr9',dayIdx:2,time:'12:00',name:'ランチ：チキン＆マッコリ',location:'麻浦周辺',category:'food',cost:'約1,500円/人',notes:'フライドとヤンニョムを食べ比べ。生マッコリと最高の組み合わせ。'},
+      {id:'kr10',dayIdx:2,time:'14:00',name:'弘大（홍대）・カフェ・フォトブース',location:'弘大',category:'activity',cost:'各自',notes:'若者文化の中心地。フォトブース・カフェ・ライブバーが集まるエリア。'},
+      {id:'kr11',dayIdx:2,time:'19:00',name:'夕食：焼肉（カルビ・ロース）',location:'江南',category:'food',cost:'約3,000円/人',notes:'ねぎサラダと一緒に食べると格別。'},
+      {id:'kr12',dayIdx:3,time:'09:00',name:'お土産購入・空港へ',location:'仁川国際空港',category:'transport',cost:'—',notes:'コスメ・海苔・辛ラーメン・マッコリをお土産に。出発3時間前には到着を。'},
+    ],
+    packingList:[
+      {id:'krp1',text:'パスポート（残存期間6ヶ月以上）',done:false},{id:'krp2',text:'韓国ウォン両替',done:false},
+      {id:'krp3',text:'T-moneyカード',done:false},{id:'krp4',text:'変圧器不要（220V・Cプラグ）',done:false},
+      {id:'krp5',text:'海外対応クレジットカード',done:false},{id:'krp6',text:'大きめスーツケース（コスメ爆買い対策）',done:false},
+    ],
+  },
+  {
+    id:'taiwan',emoji:'🇹🇼',name:'台湾',sub:'3泊4日',
+    title:'台湾 夜市とグルメと絶景の旅',destination:'台湾・台北',nights:3,people:'',startDate:'',
+    memo:'交通：成田・羽田・関空から桃園空港へ約3〜4時間。MRTで台北市内まで約35分。\n悠遊卡（イージーカード）をコンビニで購入するとMRT・バスが便利。台湾は食が安くて美味しい！',
+    activities:[
+      {id:'tw1',dayIdx:0,time:'13:00',name:'桃園空港着・MRTで台北へ',location:'台湾桃園国際空港',category:'transport',cost:'MRT約600円',notes:'悠遊卡（イージーカード）を空港で購入すると便利。'},
+      {id:'tw2',dayIdx:0,time:'15:30',name:'西門町散策',location:'西門町',category:'shopping',cost:'各自',notes:'台湾版原宿。ファッション・グルメ・ストリートカルチャーが集まるエリア。'},
+      {id:'tw3',dayIdx:0,time:'18:00',name:'士林夜市を攻略',location:'士林夜市',category:'food',cost:'約1,500円/人',notes:'台湾最大の夜市。大鶏排・臭豆腐・蚵仔煎・タピオカを制覇しよう。'},
+      {id:'tw4',dayIdx:1,time:'09:00',name:'故宮博物院',location:'故宮博物院',category:'sightseeing',cost:'約700円',notes:'翠玉白菜・肉形石は必見。朝イチで行くのがおすすめ。'},
+      {id:'tw5',dayIdx:1,time:'12:00',name:'ランチ：ルーローファン・牛肉麺',location:'台北市内',category:'food',cost:'約500円/人',notes:'台湾のソウルフード・魯肉飯は豚バラ肉の甘辛煮込みが絶品。'},
+      {id:'tw6',dayIdx:1,time:'14:00',name:'九份・レトロな街歩き',location:'九份（新北市）',category:'sightseeing',cost:'—',notes:'夕暮れ時〜夜のちょうちんの灯りが幻想的で美しい。'},
+      {id:'tw7',dayIdx:1,time:'19:00',name:'基隆廟口夜市',location:'基隆',category:'food',cost:'約1,000円/人',notes:'九份帰りに立ち寄れる老舗夜市。地元っ子に愛される味。'},
+      {id:'tw8',dayIdx:2,time:'09:30',name:'台北101展望台',location:'台北101',category:'sightseeing',cost:'約1,500円',notes:'地上508mから台北盆地が一望できる絶景。'},
+      {id:'tw9',dayIdx:2,time:'13:30',name:'鼎泰豊で小籠包ランチ',location:'信義',category:'food',cost:'約2,500円/人',notes:'世界的名店。小籠包・チャーハン・酸辣湯のセットがおすすめ。'},
+      {id:'tw10',dayIdx:2,time:'15:30',name:'龍山寺・迪化街散策',location:'万華・大稲埕',category:'sightseeing',cost:'無料',notes:'台北最古の寺でお参り。迪化街の乾物・漢方の老舗街も風情あり。'},
+      {id:'tw11',dayIdx:2,time:'19:00',name:'寧夏夜市',location:'寧夏夜市',category:'food',cost:'約1,000円/人',notes:'地元っ子が通う夜市。葱油餅・おこわ・紅豆餅がおすすめ。'},
+      {id:'tw12',dayIdx:3,time:'09:00',name:'北投温泉・日帰り入浴',location:'北投温泉',category:'activity',cost:'入浴約300円〜',notes:'MRTで約30分。旅の締めくくりに温泉でリフレッシュ。'},
+      {id:'tw13',dayIdx:3,time:'13:00',name:'空港へ・帰国',location:'台湾桃園国際空港',category:'transport',cost:'—',notes:'パイナップルケーキ・ヌガークラッカー・台湾コーヒーをお土産に。'},
+    ],
+    packingList:[
+      {id:'twp1',text:'パスポート（残存期間6ヶ月以上）',done:false},{id:'twp2',text:'台湾ドル両替',done:false},
+      {id:'twp3',text:'悠遊卡（イージーカード）',done:false},{id:'twp4',text:'変圧器不要（110V・タイプAプラグ）',done:false},
+      {id:'twp5',text:'海外対応クレジットカード',done:false},{id:'twp6',text:'胃薬（グルメ食べ過ぎ注意）',done:false},
+    ],
+  },
 ];
 
 // ── DB ───────────────────────────────────────────
@@ -734,12 +807,12 @@ function renderTrip(){
   document.getElementById('nav-title').textContent=trip.title;
   document.getElementById('nav-actions').innerHTML=`
     <button class="nav-btn" id="edit-trip-btn">編集</button>
+    <button class="nav-btn" id="share-btn">🔗 共有</button>
     <select class="nav-btn" id="theme-select" style="padding:0 8px;cursor:pointer">
       <option value="default">📘 スタンダード</option>
       <option value="pop">🎨 ポップ</option>
       <option value="wagumi">🎋 和風</option>
     </select>
-    <button class="nav-btn" id="share-btn">🔗 共有</button>
     <button class="nav-btn" id="print-btn">🖨️ プリント</button>`;
   document.getElementById('theme-select').value=trip.printTheme||'default';
   document.getElementById('theme-select').onchange=function(){trip.printTheme=this.value;db.upsert(trip);};
@@ -1050,6 +1123,40 @@ const SEASON_PACKING={
 const STYLE_LABELS={date:'💑 デート',family:'👨‍👩‍👧 家族',friends:'👯 友達',solo:'🚶 ひとり旅'};
 const SEASON_LABELS={spring:'🌸 春',summer:'☀️ 夏',autumn:'🍂 秋',winter:'❄️ 冬'};
 
+// ── スタイル別・季節別アクティビティ（テンプレートに追加） ────────────
+const STYLE_ACTIVITIES={
+  date:[
+    {dayIdx:1,time:'17:00',name:'サンセットスポットで2人の時間',location:'',category:'sightseeing',cost:'無料',notes:'夕焼けを一緒に楽しむデートの定番。事前に絶景スポットを調べておこう。'},
+    {dayIdx:1,time:'19:30',name:'ディナー：雰囲気のいいレストラン',location:'',category:'food',cost:'約5,000〜8,000円/人',notes:'記念日・デートにぴったりな窓際席を予約しておくとGOOD。'},
+  ],
+  family:[
+    {dayIdx:1,time:'10:00',name:'子ども向け体験スポット・アクティビティ',location:'',category:'sightseeing',cost:'各自',notes:'地域の体験施設・科学館・水族館など子どもが喜ぶ場所を事前チェック。'},
+    {dayIdx:1,time:'15:00',name:'公園・広場で自由あそびタイム',location:'',category:'sightseeing',cost:'無料',notes:'子どもがのびのび遊べる広場を探しておこう。パパ・ママも一緒に走ろう！'},
+  ],
+  friends:[
+    {dayIdx:1,time:'18:00',name:'居酒屋・ローカルグルメ探索',location:'',category:'food',cost:'約3,000〜4,000円/人',notes:'地元の名物を肴にワイワイ飲もう。食べログ・Googleマップで評判を事前チェック。'},
+    {dayIdx:1,time:'20:30',name:'二次会・バーまたはカラオケ',location:'',category:'food',cost:'各自',notes:'旅の思い出を語りながら盛り上がろう！'},
+  ],
+  solo:[
+    {dayIdx:1,time:'07:00',name:'早朝散歩・一人の時間を満喫',location:'',category:'sightseeing',cost:'無料',notes:'人が少ない早朝の散策は、旅の特権。気になる路地に迷い込んでみよう。'},
+    {dayIdx:1,time:'16:00',name:'カフェで日記・旅のまとめ',location:'',category:'food',cost:'約500〜800円',notes:'旅の印象を書き留めておこう。後から見返すと素敵な思い出に。'},
+  ],
+};
+const SEASON_ACTIVITIES={
+  spring:[
+    {dayIdx:0,time:'08:30',name:'お花見スポットへ朝散歩',location:'',category:'sightseeing',cost:'無料',notes:'3〜4月は桜、4〜5月はツツジ・藤が見頃。地元の花見スポットを調べておこう。'},
+  ],
+  summer:[
+    {dayIdx:0,time:'20:00',name:'夏祭り・花火大会をチェック',location:'',category:'sightseeing',cost:'各自',notes:'地域の花火大会や夏祭りのスケジュールを事前確認しよう。浴衣で行くのも◎。'},
+  ],
+  autumn:[
+    {dayIdx:0,time:'09:00',name:'紅葉スポット散策',location:'',category:'sightseeing',cost:'無料',notes:'10〜11月は全国各地で紅葉が見頃。地元の紅葉名所を事前リサーチしておこう。'},
+  ],
+  winter:[
+    {dayIdx:0,time:'18:30',name:'イルミネーション・冬の夜景',location:'',category:'sightseeing',cost:'各自',notes:'冬のイルミネーションは12〜2月が見頃。地元のライトアップスポットをチェック。'},
+  ],
+};
+
 // ── ウィザード状態 ───────────────────────────────────
 let wizardState={step:1,tpl:null,style:null,season:null};
 
@@ -1274,16 +1381,30 @@ function showWizardStep(step){
           if(!existing.has(text)){basePackingList.push({id:uid(),text,done:false});existing.add(text);}
         });
       }
+      const tripNights=parseInt(document.getElementById('m-nights').value)||0;
+      let baseActivities=tpl?tpl.activities.map(a=>({...a,id:uid()})):[];
+      // スタイル別アクティビティ追加（dayIdxをnightsに合わせてクランプ）
+      if(wizardState.style&&STYLE_ACTIVITIES[wizardState.style]){
+        STYLE_ACTIVITIES[wizardState.style].forEach(a=>{
+          baseActivities.push({...a,id:uid(),dayIdx:Math.min(a.dayIdx,tripNights)});
+        });
+      }
+      // 季節別アクティビティ追加
+      if(wizardState.season&&SEASON_ACTIVITIES[wizardState.season]){
+        SEASON_ACTIVITIES[wizardState.season].forEach(a=>{
+          baseActivities.push({...a,id:uid(),dayIdx:Math.min(a.dayIdx,tripNights)});
+        });
+      }
       const newTrip={
         id:uid(),
         title,
         destination:document.getElementById('m-dest').value.trim(),
         emoji:document.getElementById('m-emoji').value.trim()||'✈️',
         startDate:document.getElementById('m-date').value,
-        nights:parseInt(document.getElementById('m-nights').value)||0,
+        nights:tripNights,
         people:document.getElementById('m-people').value.trim(),
         memo:document.getElementById('m-memo').value,
-        activities:tpl?tpl.activities.map(a=>({...a,id:uid()})):[],
+        activities:baseActivities,
         packingList:basePackingList,
         tripStyle:wizardState.style,
         tripSeason:wizardState.season,
