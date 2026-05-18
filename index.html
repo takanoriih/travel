@@ -174,7 +174,7 @@ input,select,textarea{font-family:inherit}
   #nav,#app,.modal-overlay{display:none!important}
 
   html,body{background:#fff!important;color:#1f2937;
-    font-family:'Hiragino Mincho Pro','Yu Mincho','MS PMincho','Hiragino Kaku Gothic Pro','Meiryo',serif;
+    font-family:'Meiryo UI','Meiryo','Yu Gothic UI','Yu Gothic',sans-serif;
     -webkit-print-color-adjust:exact;print-color-adjust:exact;
   }
   *{box-shadow:none!important}
@@ -739,9 +739,11 @@ function renderTrip(){
       <option value="pop">🎨 ポップ</option>
       <option value="wagumi">🎋 和風</option>
     </select>
+    <button class="nav-btn" id="share-btn">🔗 共有</button>
     <button class="nav-btn" id="print-btn">🖨️ プリント</button>`;
   document.getElementById('theme-select').value=trip.printTheme||'default';
   document.getElementById('theme-select').onchange=function(){trip.printTheme=this.value;db.upsert(trip);};
+  document.getElementById('share-btn').onclick=()=>shareTrip(trip);
   document.getElementById('edit-trip-btn').onclick=()=>openTripModal(trip);
   document.getElementById('print-btn').onclick=()=>{
     const themeVal=document.getElementById('theme-select')?.value||'default';
@@ -843,7 +845,8 @@ function getThemeCSS(theme){
 .ps-stat-value{color:#f43f5e!important}
 .ps-event-time{color:#f43f5e!important}
 .ps-packing-box{border-color:#f43f5e!important;border-radius:50%!important}
-.ps-event-card{border-left-width:5px!important;border-radius:3mm!important}`;
+.ps-event-card{border-left-width:5px!important;border-radius:3mm!important}
+html,body{font-family:'Hiragino Maru Gothic Pro','Rounded Mplus 1c','Meiryo UI','Meiryo',sans-serif!important}`;
   }
   if(theme==='wagumi'){
     return `.ps-cover{background:linear-gradient(160deg,#1c1917 0%,#44403c 40%,#78350f 100%)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -1342,8 +1345,67 @@ function showModal(html){
 }
 function closeModal(){document.getElementById('modal-overlay')?.remove();}
 
+// ── 共有機能 ─────────────────────────────────────────────
+function shareTrip(trip){
+  try{
+    const json=JSON.stringify(trip);
+    const encoded=btoa(unescape(encodeURIComponent(json)));
+    const url=location.href.split('#')[0]+'#share='+encoded;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(()=>{
+        showShareToast('🔗 URLをコピーしました！LINEやメールで送ってね');
+      }).catch(()=>fallbackCopy(url));
+    }else{fallbackCopy(url);}
+  }catch(e){alert('共有URLの生成に失敗しました');}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');
+  ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');showShareToast('🔗 URLをコピーしました！LINEやメールで送ってね');}
+  catch{alert('コピーできませんでした。URLをコピーしてください:\n'+text);}
+  ta.remove();
+}
+function showShareToast(msg){
+  const el=document.createElement('div');
+  el.textContent=msg;
+  el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:nowrap';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+function checkShareParam(){
+  const hash=location.hash;
+  if(!hash.startsWith('#share='))return;
+  try{
+    const encoded=hash.slice(7);
+    const json=decodeURIComponent(escape(atob(encoded)));
+    const trip=JSON.parse(json);
+    if(!trip||!trip.title)return;
+    showModal(`
+      <div class="modal-title">✈️ しおりを受け取りました</div>
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:40px;margin-bottom:12px">${trip.emoji||'✈️'}</div>
+        <div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">${esc(trip.title)}</div>
+        <div style="font-size:13px;color:#64748b">${esc(trip.destination||'')} ${trip.nights!=null?`・${trip.nights}泊${trip.nights+1}日`:''}</div>
+      </div>
+      <p style="font-size:13px;color:#475569;text-align:center;margin-bottom:20px">このしおりをあなたのアプリに追加しますか？</p>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="share-cancel">キャンセル</button>
+        <button class="modal-submit" id="share-import">追加する</button>
+      </div>`);
+    document.getElementById('share-cancel').onclick=()=>{closeModal();history.replaceState(null,'',location.pathname);};
+    document.getElementById('share-import').onclick=()=>{
+      const newTrip={...trip,id:uid(),activities:(trip.activities||[]).map(a=>({...a,id:uid()})),packingList:(trip.packingList||[]).map(p=>({...p,id:uid()}))};
+      db.upsert(newTrip);closeModal();
+      history.replaceState(null,'',location.pathname);
+      state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';render();
+    };
+  }catch(e){history.replaceState(null,'',location.pathname);}
+}
+
 try {
   render();
+  checkShareParam();
 } catch(e) {
   document.getElementById('app').innerHTML =
     `<div style="padding:40px;color:red;font-size:16px;">
