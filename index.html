@@ -49,11 +49,11 @@ input,select,textarea{font-family:inherit}
 .home-sub{font-size:14px;color:#64748b;margin-top:2px}
 .add-btn{height:44px;padding:0 20px;background:linear-gradient(135deg,#0ea5e9,#6366f1);color:#fff;border-radius:14px;font-size:14px;font-weight:800;box-shadow:0 4px 14px rgba(14,165,233,.4);transition:.2s}
 .add-btn:hover{transform:translateY(-1px)}
-#trips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
-.trip-card{background:#fff;border-radius:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:2px solid transparent;cursor:pointer;transition:.2s;overflow:hidden}
-.trip-card:hover{border-color:#bae6fd;transform:translateY(-2px);box-shadow:0 8px 24px rgba(14,165,233,.15)}
-.trip-card-cover{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;background:linear-gradient(135deg,#e0f2fe,#ede9fe)}
-.trip-card-body{padding:16px}
+#trips-grid{display:flex;flex-direction:column;gap:12px}
+.trip-card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);border:2px solid transparent;cursor:pointer;transition:.2s;overflow:hidden;display:flex;align-items:center;gap:14px;padding:10px 14px}
+.trip-card:hover{border-color:#bae6fd;transform:translateY(-1px);box-shadow:0 6px 20px rgba(14,165,233,.15)}
+.trip-card-cover{width:64px;height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,#e0f2fe,#ede9fe);border-radius:16px}
+.trip-card-body{flex:1;min-width:0}
 .trip-card-title{font-size:15px;font-weight:800;color:#0f172a;margin-bottom:4px}
 .trip-card-meta{font-size:12px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap}
 .empty-state{text-align:center;padding:60px 20px;color:#94a3b8}
@@ -734,10 +734,18 @@ function renderTrip(){
   document.getElementById('nav-title').textContent=trip.title;
   document.getElementById('nav-actions').innerHTML=`
     <button class="nav-btn" id="edit-trip-btn">編集</button>
+    <select class="nav-btn" id="theme-select" style="padding:0 8px;cursor:pointer">
+      <option value="default">📘 スタンダード</option>
+      <option value="pop">🎨 ポップ</option>
+      <option value="wagumi">🎋 和風</option>
+    </select>
     <button class="nav-btn" id="print-btn">🖨️ プリント</button>`;
+  document.getElementById('theme-select').value=trip.printTheme||'default';
+  document.getElementById('theme-select').onchange=function(){trip.printTheme=this.value;db.upsert(trip);};
   document.getElementById('edit-trip-btn').onclick=()=>openTripModal(trip);
   document.getElementById('print-btn').onclick=()=>{
-    document.getElementById('print-shiori').innerHTML=buildPrintShiori(trip);
+    const themeVal=document.getElementById('theme-select')?.value||'default';
+    document.getElementById('print-shiori').innerHTML=buildPrintShiori(trip,themeVal);
     window.print();
   };
   const days=tripDays(trip);
@@ -779,7 +787,7 @@ function renderTrip(){
                     <button class="act-btn del-act" data-id="${a.id}">🗑️</button>
                   </div>
                 </div>
-                ${a.location?`<div class="activity-loc">📍 ${esc(a.location)}</div>`:''}
+                ${a.location?`<div class="activity-loc">📍 <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a.location)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline dotted">${esc(a.location)}</a></div>`:''}
                 ${a.cost?`<div class="activity-cost">💰 ${esc(a.cost)}</div>`:''}
                 ${a.notes?`<div class="activity-notes">💡 ${esc(a.notes)}</div>`:''}
               </div>
@@ -824,8 +832,40 @@ function addPacking(trip,input){
   db.upsert(trip);input.value='';renderTrip();
 }
 
+// ── プリントテーマCSS ────────────────────────────────
+function getThemeCSS(theme){
+  if(theme==='pop'){
+    return `.ps-cover{background:linear-gradient(135deg,#f43f5e 0%,#f97316 50%,#eab308 100%)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps-cover-tag{background:rgba(255,255,255,.25)!important;color:#fff!important;border:2px solid rgba(255,255,255,.6)!important}
+.ps-day-banner{background:linear-gradient(90deg,#f43f5e,#ec4899)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps-section-title{color:#f43f5e!important;border-bottom-color:#f43f5e!important}
+.ps-stat-card{border-color:#f43f5e!important}
+.ps-stat-value{color:#f43f5e!important}
+.ps-event-time{color:#f43f5e!important}
+.ps-packing-box{border-color:#f43f5e!important;border-radius:50%!important}
+.ps-event-card{border-left-width:5px!important;border-radius:3mm!important}`;
+  }
+  if(theme==='wagumi'){
+    return `.ps-cover{background:linear-gradient(160deg,#1c1917 0%,#44403c 40%,#78350f 100%)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps-cover-tag{background:rgba(220,38,38,.15)!important;color:#fca5a5!important;border:1px solid #ef4444!important;letter-spacing:.4em!important}
+.ps-cover-title{font-family:'Hiragino Mincho Pro','Yu Mincho','MS Mincho',serif!important;letter-spacing:.12em!important}
+.ps-cover-ornament{color:#fca5a5!important}
+.ps-cover-info-label{color:#fca5a5!important;font-family:'Hiragino Mincho Pro','Yu Mincho',serif!important}
+.ps-cover-footer{color:rgba(252,165,165,.7)!important;font-family:'Hiragino Mincho Pro','Yu Mincho',serif!important;letter-spacing:.3em!important}
+.ps-day-banner{background:linear-gradient(90deg,#7f1d1d,#991b1b)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ps-day-banner-num{font-family:'Hiragino Mincho Pro','Yu Mincho',serif!important}
+.ps-section-title{color:#7f1d1d!important;border-bottom-color:#7f1d1d!important;font-family:'Hiragino Mincho Pro','Yu Mincho',serif!important}
+.ps-stat-card{border-color:#7f1d1d!important}
+.ps-stat-value{color:#7f1d1d!important}
+.ps-event-time{color:#7f1d1d!important;font-family:'Hiragino Mincho Pro','Yu Mincho',serif!important}
+.ps-event-card{border-left-color:#7f1d1d!important}
+.ps-packing-box{border-color:#7f1d1d!important}`;
+  }
+  return '';
+}
+
 // ── 印刷用「旅のしおり」生成 ─────────────────────────
-function buildPrintShiori(trip){
+function buildPrintShiori(trip, theme){
   const days=tripDays(trip);
   const acts=(trip.activities||[]).slice().sort((a,b)=>a.time.localeCompare(b.time));
   const cost=totalCost(trip);
@@ -987,124 +1027,268 @@ function buildPrintShiori(trip){
       <div class="ps-free-hint">✈ 素敵な旅を ✈</div>
     </div>`;
 
-  return coverPage+overviewPage+dayPages+packingPage+freeNotesPage;
+  const themeCSS=getThemeCSS(theme||'default');
+  return (themeCSS?`<style>${themeCSS}</style>`:'')+coverPage+overviewPage+dayPages+packingPage+freeNotesPage;
 }
 
-// ── 旅モーダル（テンプレート付き）────────────────────
-let selectedTpl=null;
+// ── スタイル別・季節別持ち物 ─────────────────────────
+const STYLE_PACKING={
+  date:['おしゃれな服装','カメラ・自撮り棒','共通財布用の現金'],
+  family:['子ども用の着替え多め','絆創膏・常備薬','子どもの保険証コピー'],
+  friends:['現金（割り勘用）','モバイルバッテリー（共有）','集合写真用カメラ'],
+  solo:['ガイドブック・地図','充電器類一式','緊急連絡先メモ'],
+};
+const SEASON_PACKING={
+  spring:['花粉症薬・マスク','薄手の羽織り'],
+  summer:['日焼け止め・帽子','汗拭きシート','虫除けスプレー'],
+  autumn:['カーディガン・軽いジャケット','紅葉情報アプリ'],
+  winter:['ダウンコート・手袋・マフラー','カイロ','保湿クリーム'],
+};
+const STYLE_LABELS={date:'💑 デート',family:'👨‍👩‍👧 家族',friends:'👯 友達',solo:'🚶 ひとり旅'};
+const SEASON_LABELS={spring:'🌸 春',summer:'☀️ 夏',autumn:'🍂 秋',winter:'❄️ 冬'};
+
+// ── ウィザード状態 ───────────────────────────────────
+let wizardState={step:1,tpl:null,style:null,season:null};
+
+// ── 旅モーダル（テンプレート付き・ウィザード）────────
 function openTripModal(trip){
   const isNew=!trip;
-  selectedTpl=null;
-  const t=trip||{id:uid(),title:'',destination:'',startDate:'',nights:2,people:'',memo:'',emoji:'✈️',activities:[],packingList:[]};
-  showModal(`
-    <div class="modal-title">${isNew?'✈️ 新しい旅を作る':'✏️ 旅を編集'}</div>
-    ${isNew?`
+  if(isNew){
+    wizardState={step:1,tpl:null,style:null,season:null};
+    showWizardStep(1);
+  } else {
+    const t=trip;
+    showModal(`
+      <div class="modal-title">✏️ 旅を編集</div>
       <div class="form-group">
-        <label class="form-label">📋 テンプレートから作成（行き先を選ぶだけで自動入力！）</label>
-        <div class="tpl-grid" id="tpl-grid">
-          ${TEMPLATES.map(tp=>`
-            <button class="tpl-btn" data-tpl="${tp.id}">
-              <span class="tpl-emoji">${tp.emoji}</span>
-              <span class="tpl-name">${tp.name}</span>
-              <span class="tpl-sub">${tp.sub}</span>
-            </button>`).join('')}
+        <label class="form-label">旅のタイトル</label>
+        <input class="form-input" id="m-title" value="${esc(t.title)}" placeholder="例：京都・奈良 春の旅" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">行き先</label>
+          <input class="form-input" id="m-dest" value="${esc(t.destination||'')}" placeholder="例：京都・大阪" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">絵文字</label>
+          <input class="form-input" id="m-emoji" value="${t.emoji||'✈️'}" style="font-size:20px;text-align:center" />
         </div>
       </div>
-      <div class="tpl-divider">または手動で入力</div>
-    `:''}
-    <div class="form-group">
-      <label class="form-label">旅のタイトル</label>
-      <input class="form-input" id="m-title" value="${esc(t.title)}" placeholder="例：京都・奈良 春の旅" />
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">行き先</label>
-        <input class="form-input" id="m-dest" value="${esc(t.destination||'')}" placeholder="例：京都・大阪" />
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">出発日</label>
+          <input class="form-input" id="m-date" type="date" value="${t.startDate||''}" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">泊数</label>
+          <input class="form-input" id="m-nights" type="number" min="0" max="30" value="${t.nights??2}" />
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label">絵文字</label>
-        <input class="form-input" id="m-emoji" value="${t.emoji||'✈️'}" style="font-size:20px;text-align:center" />
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">出発日</label>
-        <input class="form-input" id="m-date" type="date" value="${t.startDate||''}" />
+        <label class="form-label">メンバー</label>
+        <input class="form-input" id="m-people" value="${esc(t.people||'')}" placeholder="例：田中・鈴木・佐藤" />
       </div>
       <div class="form-group">
-        <label class="form-label">泊数</label>
-        <input class="form-input" id="m-nights" type="number" min="0" max="30" value="${t.nights??2}" />
+        <label class="form-label">メモ</label>
+        <textarea class="form-textarea" id="m-memo" placeholder="集合場所など">${esc(t.memo||'')}</textarea>
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">メンバー</label>
-      <input class="form-input" id="m-people" value="${esc(t.people||'')}" placeholder="例：田中・鈴木・佐藤" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">メモ</label>
-      <textarea class="form-textarea" id="m-memo" placeholder="集合場所など">${esc(t.memo||'')}</textarea>
-    </div>
-    <div class="modal-footer">
-      ${!isNew?`<button class="modal-delete" id="m-del">削除</button>`:''}
-      <button class="modal-cancel" id="m-cancel">キャンセル</button>
-      <button class="modal-submit" id="m-save">${isNew?'作成する':'保存する'}</button>
-    </div>`);
+      <div class="modal-footer">
+        <button class="modal-delete" id="m-del">削除</button>
+        <button class="modal-cancel" id="m-cancel">キャンセル</button>
+        <button class="modal-submit" id="m-save">保存する</button>
+      </div>`);
+    document.getElementById('m-cancel').onclick=closeModal;
+    document.getElementById('m-save').onclick=()=>{
+      const title=document.getElementById('m-title').value.trim();
+      if(!title){alert('タイトルを入力してください');return;}
+      t.title=title;
+      t.destination=document.getElementById('m-dest').value.trim();
+      t.emoji=document.getElementById('m-emoji').value.trim()||'✈️';
+      t.startDate=document.getElementById('m-date').value;
+      t.nights=parseInt(document.getElementById('m-nights').value)||0;
+      t.people=document.getElementById('m-people').value.trim();
+      t.memo=document.getElementById('m-memo').value;
+      db.upsert(t);closeModal();render();
+    };
+    document.getElementById('m-del').onclick=()=>{
+      if(!confirm(`「${t.title}」を削除しますか？`))return;
+      db.del(t.id);closeModal();state.view='home';render();
+    };
+  }
+}
 
-  if(isNew){
+function showWizardStep(step){
+  wizardState.step=step;
+  if(step===1){
+    showModal(`
+      <div class="modal-title">① 行き先を選ぶ</div>
+      <div class="tpl-grid" id="tpl-grid">
+        ${TEMPLATES.map(tp=>`
+          <button class="tpl-btn${wizardState.tpl&&wizardState.tpl.id===tp.id?' selected':''}" data-tpl="${tp.id}">
+            <span class="tpl-emoji">${tp.emoji}</span>
+            <span class="tpl-name">${tp.name}</span>
+            <span class="tpl-sub">${tp.sub}</span>
+          </button>`).join('')}
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="m-cancel">キャンセル</button>
+        <a href="#" id="m-manual" style="align-self:center;font-size:13px;color:#64748b;text-decoration:underline;margin-right:auto">手動で入力</a>
+        <button class="modal-submit" id="m-next" ${wizardState.tpl?'':'disabled style="opacity:.4;cursor:not-allowed"'}>次へ →</button>
+      </div>`);
+    document.getElementById('m-cancel').onclick=closeModal;
+    document.getElementById('m-manual').onclick=e=>{e.preventDefault();showWizardStep(4);};
+    document.getElementById('m-next').onclick=()=>{if(wizardState.tpl)showWizardStep(2);};
     document.querySelectorAll('.tpl-btn').forEach(el=>{
       el.onclick=()=>{
         document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.remove('selected'));
         el.classList.add('selected');
-        const tpl=TEMPLATES.find(tp=>tp.id===el.dataset.tpl);
-        if(tpl){
-          selectedTpl=tpl;
-          document.getElementById('m-title').value=tpl.title;
-          document.getElementById('m-dest').value=tpl.destination;
-          document.getElementById('m-emoji').value=tpl.emoji;
-          document.getElementById('m-nights').value=tpl.nights;
-          document.getElementById('m-memo').value=tpl.memo;
-        }
+        wizardState.tpl=TEMPLATES.find(tp=>tp.id===el.dataset.tpl)||null;
+        const btn=document.getElementById('m-next');
+        if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
       };
     });
-  }
-  document.getElementById('m-cancel').onclick=closeModal;
-  document.getElementById('m-save').onclick=()=>{
-    const title=document.getElementById('m-title').value.trim();
-    if(!title){alert('タイトルを入力してください');return;}
-    if(isNew&&selectedTpl){
+  } else if(step===2){
+    showModal(`
+      <div class="modal-title">② スタイルを選ぶ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        ${Object.entries(STYLE_LABELS).map(([k,v])=>`
+          <button class="tpl-btn${wizardState.style===k?' selected':''}" data-style="${k}" style="font-size:15px;padding:14px 8px">
+            ${v}
+          </button>`).join('')}
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="m-cancel">キャンセル</button>
+        <button class="modal-cancel" id="m-back">← 戻る</button>
+        <button class="modal-submit" id="m-next" ${wizardState.style?'':'disabled style="opacity:.4;cursor:not-allowed"'}>次へ →</button>
+      </div>`);
+    document.getElementById('m-cancel').onclick=closeModal;
+    document.getElementById('m-back').onclick=()=>showWizardStep(1);
+    document.getElementById('m-next').onclick=()=>{if(wizardState.style)showWizardStep(3);};
+    document.querySelectorAll('[data-style]').forEach(el=>{
+      el.onclick=()=>{
+        document.querySelectorAll('[data-style]').forEach(b=>b.classList.remove('selected'));
+        el.classList.add('selected');
+        wizardState.style=el.dataset.style;
+        const btn=document.getElementById('m-next');
+        if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
+      };
+    });
+  } else if(step===3){
+    showModal(`
+      <div class="modal-title">③ 季節を選ぶ</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        ${Object.entries(SEASON_LABELS).map(([k,v])=>`
+          <button class="tpl-btn${wizardState.season===k?' selected':''}" data-season="${k}" style="font-size:15px;padding:14px 8px">
+            ${v}
+          </button>`).join('')}
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="m-cancel">キャンセル</button>
+        <button class="modal-cancel" id="m-back">← 戻る</button>
+        <button class="modal-submit" id="m-next" ${wizardState.season?'':'disabled style="opacity:.4;cursor:not-allowed"'}>④ 旅を作る →</button>
+      </div>`);
+    document.getElementById('m-cancel').onclick=closeModal;
+    document.getElementById('m-back').onclick=()=>showWizardStep(2);
+    document.getElementById('m-next').onclick=()=>{if(wizardState.season)showWizardStep(4);};
+    document.querySelectorAll('[data-season]').forEach(el=>{
+      el.onclick=()=>{
+        document.querySelectorAll('[data-season]').forEach(b=>b.classList.remove('selected'));
+        el.classList.add('selected');
+        wizardState.season=el.dataset.season;
+        const btn=document.getElementById('m-next');
+        if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
+      };
+    });
+  } else {
+    // Step 4: フォーム
+    const tpl=wizardState.tpl;
+    const styleLabel=wizardState.style?STYLE_LABELS[wizardState.style]:null;
+    const seasonLabel=wizardState.season?SEASON_LABELS[wizardState.season]:null;
+    const selectionBadge=(styleLabel||seasonLabel)
+      ? `<div style="font-size:12px;color:#64748b;margin-bottom:16px;padding:8px 12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0">
+          ${[styleLabel,seasonLabel].filter(Boolean).join(' / ')}
+        </div>`
+      : '';
+    showModal(`
+      <div class="modal-title">✈️ 旅の詳細を入力</div>
+      ${selectionBadge}
+      <div class="form-group">
+        <label class="form-label">旅のタイトル</label>
+        <input class="form-input" id="m-title" value="${esc(tpl?tpl.title:'')}" placeholder="例：京都・奈良 春の旅" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">行き先</label>
+          <input class="form-input" id="m-dest" value="${esc(tpl?tpl.destination:'')}" placeholder="例：京都・大阪" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">絵文字</label>
+          <input class="form-input" id="m-emoji" value="${esc(tpl?tpl.emoji:'✈️')}" style="font-size:20px;text-align:center" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">出発日</label>
+          <input class="form-input" id="m-date" type="date" value="" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">泊数</label>
+          <input class="form-input" id="m-nights" type="number" min="0" max="30" value="${tpl?tpl.nights:2}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">メンバー</label>
+        <input class="form-input" id="m-people" value="" placeholder="例：田中・鈴木・佐藤" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">メモ</label>
+        <textarea class="form-textarea" id="m-memo" placeholder="集合場所など">${esc(tpl?tpl.memo:'')}</textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-cancel" id="m-cancel">キャンセル</button>
+        ${wizardState.style||wizardState.season?`<button class="modal-cancel" id="m-back">← 戻る</button>`:''}
+        <button class="modal-submit" id="m-save">作成する</button>
+      </div>`);
+    document.getElementById('m-cancel').onclick=closeModal;
+    if(document.getElementById('m-back')){
+      document.getElementById('m-back').onclick=()=>showWizardStep(wizardState.season?3:wizardState.style?2:1);
+    }
+    document.getElementById('m-save').onclick=()=>{
+      const title=document.getElementById('m-title').value.trim();
+      if(!title){alert('タイトルを入力してください');return;}
+      let basePackingList=tpl?tpl.packingList.map(p=>({...p,id:uid()})):[];
+      // スタイル別持ち物追加（重複なし）
+      if(wizardState.style&&STYLE_PACKING[wizardState.style]){
+        const existing=new Set(basePackingList.map(p=>p.text));
+        STYLE_PACKING[wizardState.style].forEach(text=>{
+          if(!existing.has(text)){basePackingList.push({id:uid(),text,done:false});existing.add(text);}
+        });
+      }
+      // 季節別持ち物追加（重複なし）
+      if(wizardState.season&&SEASON_PACKING[wizardState.season]){
+        const existing=new Set(basePackingList.map(p=>p.text));
+        SEASON_PACKING[wizardState.season].forEach(text=>{
+          if(!existing.has(text)){basePackingList.push({id:uid(),text,done:false});existing.add(text);}
+        });
+      }
       const newTrip={
-        ...selectedTpl,
         id:uid(),
         title,
         destination:document.getElementById('m-dest').value.trim(),
-        emoji:document.getElementById('m-emoji').value.trim()||selectedTpl.emoji,
+        emoji:document.getElementById('m-emoji').value.trim()||'✈️',
         startDate:document.getElementById('m-date').value,
-        nights:parseInt(document.getElementById('m-nights').value)||selectedTpl.nights,
+        nights:parseInt(document.getElementById('m-nights').value)||0,
         people:document.getElementById('m-people').value.trim(),
         memo:document.getElementById('m-memo').value,
-        activities:selectedTpl.activities.map(a=>({...a,id:uid()})),
-        packingList:selectedTpl.packingList.map(p=>({...p,id:uid()})),
+        activities:tpl?tpl.activities.map(a=>({...a,id:uid()})):[],
+        packingList:basePackingList,
+        tripStyle:wizardState.style,
+        tripSeason:wizardState.season,
       };
       db.upsert(newTrip);
       closeModal();
       state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';
-      render();return;
-    }
-    t.title=title;
-    t.destination=document.getElementById('m-dest').value.trim();
-    t.emoji=document.getElementById('m-emoji').value.trim()||'✈️';
-    t.startDate=document.getElementById('m-date').value;
-    t.nights=parseInt(document.getElementById('m-nights').value)||0;
-    t.people=document.getElementById('m-people').value.trim();
-    t.memo=document.getElementById('m-memo').value;
-    db.upsert(t);closeModal();
-    if(isNew){state.tripId=t.id;state.dayIdx=0;state.view='trip';}
-    render();
-  };
-  if(!isNew){
-    document.getElementById('m-del').onclick=()=>{
-      if(!confirm(`「${t.title}」を削除しますか？`))return;
-      db.del(t.id);closeModal();state.view='home';render();
+      render();
     };
   }
 }
