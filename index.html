@@ -1484,6 +1484,7 @@ function showModal(html){
 function closeModal(){document.getElementById('modal-overlay')?.remove();}
 
 // ── 圧縮・展開ヘルパー ────────────────────────────────────
+// CompressionStream対応ブラウザ用
 async function compressShare(str){
   const cs=new CompressionStream('deflate-raw');
   const w=cs.writable.getWriter();
@@ -1497,36 +1498,56 @@ async function decompressShare(b64){
   const w=ds.writable.getWriter();w.write(buf);w.close();
   return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());
 }
+// is.gd でURL短縮（URLが2000文字以内のとき）
+async function shortenUrl(url){
+  if(url.length>2000)return null;
+  try{
+    const ctrl=new AbortController();
+    setTimeout(()=>ctrl.abort(),5000);
+    const res=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(url),{signal:ctrl.signal});
+    const short=(await res.text()).trim();
+    return short.startsWith('http')?short:null;
+  }catch{return null;}
+}
+// 共有用に旅データを最小化（notesを除去してサイズ削減）
+function minifyTrip(trip){
+  return{
+    ...trip,
+    activities:(trip.activities||[]).map(({notes,...a})=>a),
+    packingList:(trip.packingList||[]).map(({id,done,...p})=>p),
+  };
+}
 
 // ── 共有機能 ─────────────────────────────────────────────
 async function shareTrip(trip){
   try{
-    const json=JSON.stringify(trip);
     const baseUrl=location.href.split(/[?#]/)[0];
     let urlToCopy;
-    // ① jsonblob.com にデータを保存して短いIDだけURLに載せる
+
+    // ① まずフル圧縮を試みる（notes含む）
     try{
-      const ctrl=new AbortController();
-      const tid=setTimeout(()=>ctrl.abort(),5000);
-      const res=await fetch('https://jsonblob.com/api/jsonBlob',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body:json,signal:ctrl.signal
-      });
-      clearTimeout(tid);
-      if(res.ok||res.status===201){
-        const loc=res.headers.get('Location')||'';
-        const blobId=loc.split('/').pop();
-        if(blobId)urlToCopy=baseUrl+'?blob='+blobId;
-      }
+      const encoded='v2_'+await compressShare(JSON.stringify(trip));
+      const candidate=baseUrl+'?share='+encoded;
+      // 圧縮後2000文字以内 → is.gd で短縮
+      urlToCopy=await shortenUrl(candidate)||candidate;
     }catch{}
-    // ② 失敗時: deflate圧縮URLにフォールバック
+
+    // ② 圧縮が使えない場合: notesを除いて圧縮→is.gd
     if(!urlToCopy){
-      let encoded;
-      try{encoded='v2_'+await compressShare(json);}
-      catch{encoded=btoa(unescape(encodeURIComponent(json)));}
-      urlToCopy=baseUrl+'?share='+encoded;
+      try{
+        const encoded='v2_'+await compressShare(JSON.stringify(minifyTrip(trip)));
+        const candidate=baseUrl+'?share='+encoded;
+        urlToCopy=await shortenUrl(candidate)||candidate;
+      }catch{}
     }
+
+    // ③ 最終フォールバック: notesなしの素のbase64
+    if(!urlToCopy){
+      const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(minifyTrip(trip)))));
+      const candidate=baseUrl+'?share='+encoded;
+      urlToCopy=await shortenUrl(candidate)||candidate;
+    }
+
     if(navigator.clipboard&&navigator.clipboard.writeText){
       await navigator.clipboard.writeText(urlToCopy).catch(()=>fallbackCopy(urlToCopy));
     }else{fallbackCopy(urlToCopy);}
