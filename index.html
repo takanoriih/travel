@@ -1502,22 +1502,30 @@ async function decompressShare(b64){
 async function shareTrip(trip){
   try{
     const json=JSON.stringify(trip);
-    // deflate圧縮でURLを短縮（v2_プレフィックス付き）
-    let encoded;
-    try{encoded='v2_'+await compressShare(json);}
-    catch{encoded=btoa(unescape(encodeURIComponent(json)));}
-    const longUrl=location.href.split(/[?#]/)[0]+'?share='+encoded;
-    let urlToCopy=longUrl;
-    // 2000文字以内なら is.gd でさらに短縮を試みる
-    if(longUrl.length<=2000){
-      try{
-        const ctrl=new AbortController();
-        const tid=setTimeout(()=>ctrl.abort(),4000);
-        const res=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl),{signal:ctrl.signal});
-        clearTimeout(tid);
-        const short=(await res.text()).trim();
-        if(short.startsWith('http'))urlToCopy=short;
-      }catch{}
+    const baseUrl=location.href.split(/[?#]/)[0];
+    let urlToCopy;
+    // ① jsonblob.com にデータを保存して短いIDだけURLに載せる
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),5000);
+      const res=await fetch('https://jsonblob.com/api/jsonBlob',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:json,signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(res.ok||res.status===201){
+        const loc=res.headers.get('Location')||'';
+        const blobId=loc.split('/').pop();
+        if(blobId)urlToCopy=baseUrl+'?blob='+blobId;
+      }
+    }catch{}
+    // ② 失敗時: deflate圧縮URLにフォールバック
+    if(!urlToCopy){
+      let encoded;
+      try{encoded='v2_'+await compressShare(json);}
+      catch{encoded=btoa(unescape(encodeURIComponent(json)));}
+      urlToCopy=baseUrl+'?share='+encoded;
     }
     if(navigator.clipboard&&navigator.clipboard.writeText){
       await navigator.clipboard.writeText(urlToCopy).catch(()=>fallbackCopy(urlToCopy));
@@ -1540,10 +1548,41 @@ function showShareToast(msg){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(),3000);
 }
+function showImportModal(trip){
+  if(!trip||!trip.title)return;
+  showModal(`
+    <div class="modal-title">✈️ しおりを受け取りました</div>
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:40px;margin-bottom:12px">${trip.emoji||'✈️'}</div>
+      <div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">${esc(trip.title)}</div>
+      <div style="font-size:13px;color:#64748b">${esc(trip.destination||'')} ${trip.nights!=null?`・${trip.nights}泊${trip.nights+1}日`:''}</div>
+    </div>
+    <p style="font-size:13px;color:#475569;text-align:center;margin-bottom:20px">このしおりをあなたのアプリに追加しますか？</p>
+    <div class="modal-footer">
+      <button class="modal-cancel" id="share-cancel">キャンセル</button>
+      <button class="modal-submit" id="share-import">追加する</button>
+    </div>`);
+  const clearUrl=()=>history.replaceState(null,'',location.pathname);
+  document.getElementById('share-cancel').onclick=()=>{closeModal();clearUrl();};
+  document.getElementById('share-import').onclick=()=>{
+    const newTrip={...trip,id:uid(),activities:(trip.activities||[]).map(a=>({...a,id:uid()})),packingList:(trip.packingList||[]).map(p=>({...p,id:uid()}))};
+    db.upsert(newTrip);closeModal();clearUrl();
+    state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';render();
+  };
+}
 async function checkShareParam(){
-  // ?share= (新形式) と #share= (旧形式) の両方に対応
-  let encoded=null;
   const sp=new URLSearchParams(location.search);
+  // ① ?blob= 形式（jsonblob.com短縮）
+  if(sp.has('blob')){
+    try{
+      const res=await fetch('https://jsonblob.com/api/jsonBlob/'+sp.get('blob'),{headers:{'Accept':'application/json'}});
+      if(!res.ok)throw new Error();
+      showImportModal(await res.json());
+    }catch{history.replaceState(null,'',location.pathname);}
+    return;
+  }
+  // ② ?share= (圧縮v2 / raw base64) または #share= (旧形式)
+  let encoded=null;
   if(sp.has('share')){encoded=sp.get('share');}
   else if(location.hash.startsWith('#share=')){encoded=location.hash.slice(7);}
   if(!encoded)return;
@@ -1551,28 +1590,8 @@ async function checkShareParam(){
     let json;
     if(encoded.startsWith('v2_')){json=await decompressShare(encoded.slice(3));}
     else{json=decodeURIComponent(escape(atob(encoded)));}
-    const trip=JSON.parse(json);
-    if(!trip||!trip.title)return;
-    showModal(`
-      <div class="modal-title">✈️ しおりを受け取りました</div>
-      <div style="text-align:center;padding:16px 0">
-        <div style="font-size:40px;margin-bottom:12px">${trip.emoji||'✈️'}</div>
-        <div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">${esc(trip.title)}</div>
-        <div style="font-size:13px;color:#64748b">${esc(trip.destination||'')} ${trip.nights!=null?`・${trip.nights}泊${trip.nights+1}日`:''}</div>
-      </div>
-      <p style="font-size:13px;color:#475569;text-align:center;margin-bottom:20px">このしおりをあなたのアプリに追加しますか？</p>
-      <div class="modal-footer">
-        <button class="modal-cancel" id="share-cancel">キャンセル</button>
-        <button class="modal-submit" id="share-import">追加する</button>
-      </div>`);
-    document.getElementById('share-cancel').onclick=()=>{closeModal();history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));};
-    document.getElementById('share-import').onclick=()=>{
-      const newTrip={...trip,id:uid(),activities:(trip.activities||[]).map(a=>({...a,id:uid()})),packingList:(trip.packingList||[]).map(p=>({...p,id:uid()}))};
-      db.upsert(newTrip);closeModal();
-      history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));
-      state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';render();
-    };
-  }catch(e){history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));}
+    showImportModal(JSON.parse(json));
+  }catch{history.replaceState(null,'',location.pathname);}
 }
 
 try {
