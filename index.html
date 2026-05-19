@@ -1521,31 +1521,32 @@ function minifyTrip(trip){
 // ── 共有機能 ─────────────────────────────────────────────
 async function shareTrip(trip){
   try{
+    const json=JSON.stringify(trip);
     const baseUrl=location.href.split(/[?#]/)[0];
     let urlToCopy;
 
-    // ① まずフル圧縮を試みる（notes含む）
+    // ① /api/share 経由でサーバー側保存 → 短いIDのURL（確実に短い）
     try{
-      const encoded='v2_'+await compressShare(JSON.stringify(trip));
-      const candidate=baseUrl+'?share='+encoded;
-      // 圧縮後2000文字以内 → is.gd で短縮
-      urlToCopy=await shortenUrl(candidate)||candidate;
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),8000);
+      const res=await fetch('/api/share',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:json,signal:ctrl.signal
+      });
+      clearTimeout(tid);
+      if(res.ok){const {id}=await res.json();if(id)urlToCopy=baseUrl+'?blob='+id;}
     }catch{}
 
-    // ② 圧縮が使えない場合: notesを除いて圧縮→is.gd
+    // ② フォールバック: deflate圧縮 + is.gd
     if(!urlToCopy){
       try{
-        const encoded='v2_'+await compressShare(JSON.stringify(minifyTrip(trip)));
+        const encoded='v2_'+await compressShare(json);
         const candidate=baseUrl+'?share='+encoded;
         urlToCopy=await shortenUrl(candidate)||candidate;
-      }catch{}
-    }
-
-    // ③ 最終フォールバック: notesなしの素のbase64
-    if(!urlToCopy){
-      const encoded=btoa(unescape(encodeURIComponent(JSON.stringify(minifyTrip(trip)))));
-      const candidate=baseUrl+'?share='+encoded;
-      urlToCopy=await shortenUrl(candidate)||candidate;
+      }catch{
+        urlToCopy=baseUrl+'?share='+btoa(unescape(encodeURIComponent(JSON.stringify(minifyTrip(trip)))));
+      }
     }
 
     if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -1596,7 +1597,7 @@ async function checkShareParam(){
   // ① ?blob= 形式（jsonblob.com短縮）
   if(sp.has('blob')){
     try{
-      const res=await fetch('https://jsonblob.com/api/jsonBlob/'+sp.get('blob'),{headers:{'Accept':'application/json'}});
+      const res=await fetch('/api/share?id='+sp.get('blob'));
       if(!res.ok)throw new Error();
       showImportModal(await res.json());
     }catch{history.replaceState(null,'',location.pathname);}
