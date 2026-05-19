@@ -68,6 +68,7 @@ input,select,textarea{font-family:inherit}
 
 /* テンプレート選択 */
 .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:16px}
+@media(max-width:540px){.tpl-grid{grid-template-columns:repeat(3,1fr)}}
 .tpl-btn{padding:10px 8px;border-radius:14px;border:2px solid #e2e8f0;background:#fff;text-align:center;cursor:pointer;transition:.2s;font-size:13px}
 .tpl-btn:hover{border-color:#bae6fd;background:#f0f9ff}
 .tpl-btn.selected{border-color:#0ea5e9;background:#e0f2fe}
@@ -1477,16 +1478,25 @@ function showModal(html){
 function closeModal(){document.getElementById('modal-overlay')?.remove();}
 
 // ── 共有機能 ─────────────────────────────────────────────
-function shareTrip(trip){
+async function shareTrip(trip){
   try{
     const json=JSON.stringify(trip);
     const encoded=btoa(unescape(encodeURIComponent(json)));
-    const url=location.href.split('#')[0]+'#share='+encoded;
+    const longUrl=location.href.split(/[?#]/)[0]+'?share='+encoded;
+    let urlToCopy=longUrl;
+    // is.gd でURL短縮を試みる（4秒タイムアウト）
+    try{
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),4000);
+      const res=await fetch('https://is.gd/create.php?format=simple&url='+encodeURIComponent(longUrl),{signal:ctrl.signal});
+      clearTimeout(tid);
+      const short=(await res.text()).trim();
+      if(short.startsWith('http'))urlToCopy=short;
+    }catch{}
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(()=>{
-        showShareToast('🔗 URLをコピーしました！LINEやメールで送ってね');
-      }).catch(()=>fallbackCopy(url));
-    }else{fallbackCopy(url);}
+      await navigator.clipboard.writeText(urlToCopy).catch(()=>fallbackCopy(urlToCopy));
+    }else{fallbackCopy(urlToCopy);}
+    showShareToast('🔗 URLをコピー！友達に送ってね');
   }catch(e){alert('共有URLの生成に失敗しました');}
 }
 function fallbackCopy(text){
@@ -1505,10 +1515,13 @@ function showShareToast(msg){
   setTimeout(()=>el.remove(),3000);
 }
 function checkShareParam(){
-  const hash=location.hash;
-  if(!hash.startsWith('#share='))return;
+  // ?share= (新形式) と #share= (旧形式) の両方に対応
+  let encoded=null;
+  const sp=new URLSearchParams(location.search);
+  if(sp.has('share')){encoded=sp.get('share');}
+  else if(location.hash.startsWith('#share=')){encoded=location.hash.slice(7);}
+  if(!encoded)return;
   try{
-    const encoded=hash.slice(7);
     const json=decodeURIComponent(escape(atob(encoded)));
     const trip=JSON.parse(json);
     if(!trip||!trip.title)return;
@@ -1524,14 +1537,14 @@ function checkShareParam(){
         <button class="modal-cancel" id="share-cancel">キャンセル</button>
         <button class="modal-submit" id="share-import">追加する</button>
       </div>`);
-    document.getElementById('share-cancel').onclick=()=>{closeModal();history.replaceState(null,'',location.pathname);};
+    document.getElementById('share-cancel').onclick=()=>{closeModal();history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));};
     document.getElementById('share-import').onclick=()=>{
       const newTrip={...trip,id:uid(),activities:(trip.activities||[]).map(a=>({...a,id:uid()})),packingList:(trip.packingList||[]).map(p=>({...p,id:uid()}))};
       db.upsert(newTrip);closeModal();
-      history.replaceState(null,'',location.pathname);
+      history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));
       state.tripId=newTrip.id;state.dayIdx=0;state.view='trip';render();
     };
-  }catch(e){history.replaceState(null,'',location.pathname);}
+  }catch(e){history.replaceState(null,'',location.pathname+location.hash.replace(/#share=[^&]*/,''));}
 }
 
 try {
